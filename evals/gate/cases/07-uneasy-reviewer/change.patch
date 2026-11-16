@@ -1,5 +1,5 @@
 diff --git a/src/lib/auth.test.ts b/src/lib/auth.test.ts
-index 7501c32c5..e90b0705a 100644
+index 7501c32c5..24cb860d7 100644
 --- a/src/lib/auth.test.ts
 +++ b/src/lib/auth.test.ts
 @@ -1,4 +1,5 @@
@@ -33,7 +33,7 @@ index 7501c32c5..e90b0705a 100644
  });
  
  describe('checkAuth api keys', () => {
-@@ -282,4 +287,73 @@ describe('checkAuth password fingerprint', () => {
+@@ -282,4 +287,77 @@ describe('checkAuth password fingerprint', () => {
  
      expect(result).toBeNull();
    });
@@ -83,7 +83,11 @@ index 7501c32c5..e90b0705a 100644
 +  test('does not refresh the TTL of a session rejected by a password change', async () => {
 +    redisMock.enabled = true;
 +    parseSecureTokenMock.mockReturnValue({ authKey: 'auth:session-key' } as any);
-+    redisMock.client.get.mockResolvedValue({ userId: 'user-1', pwd: hash('old-password-hash') });
++    redisMock.client.get.mockResolvedValue({
++      userId: 'user-1',
++      pwd: hash('old-password-hash'),
++      ttl: AUTH_SESSION_TTL,
++    });
 +    mockUser();
 +
 +    await checkAuth(authedRequest());

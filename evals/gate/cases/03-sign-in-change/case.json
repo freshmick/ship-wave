@@ -1,6 +1,6 @@
 {
   "row": 3,
-  "about": "A real Umami change to sign-in sessions (umami-software/umami#4553), unaltered. The issue records the session lifetime the user chose.",
+  "about": "A real Umami change to sign-in sessions (umami-software/umami#4553). One of its tests could not fail, which a reviewer rightly blocks on, so the fixture gives that test's session a ttl. The issue records the session lifetime the user chose.",
   "lane": "live",
   "base": "21eab63b8179799c7b3db124dab16da1d10e8e00",
   "pr": {
