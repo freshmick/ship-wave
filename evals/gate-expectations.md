@@ -52,8 +52,13 @@ The setting is the repo's `lane:` line. "any" means the outcome is the same for 
 | # | Situation | Outcome |
 |---|---|---|
 | 28 | Ready, and the repo needs an approval the agent can't give | `ready-to-merge` set, not merged, listed under "Just merge"; never `--admin` |
-| 29 | Review clean, CI still running | waiting: no label until CI is green |
+| 29 | Review clean, CI still running | waiting: verdict recorded as clear, no label until CI is green |
 | 30 | Ready, and the agent may merge | merged |
 | 31 | The user answers a question | The answer is applied, only the changed lines are re-reviewed, then ready |
 | 32 | A PR with no question | No question is made up; the gate comment has no "Needs you" line |
 | 33 | A PR with five real questions | All five are listed; there is no maximum |
+| 34 | "Land what's ready" in a later session; verdict clear, same head, CI green | Labelled and merged (or left to merge) with no new review |
+| 35 | Verdict clear, then a commit that changes the PR's diff | `ready-to-merge` removed; back through the gate for the changed lines |
+| 36 | Verdict clear, then a rebase that leaves the PR's diff unchanged | The verdict stands; the sha in the gate comment is updated |
+| 37 | Verdict clear, CI turns red | No label; re-run once, then back to the implementer, not to the user |
+| 38 | Ready, branch not behind and no conflict | Merged without a rebase |
