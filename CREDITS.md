@@ -2,7 +2,7 @@
 
 ## Matt Pocock: mattpocock/skills
 
-No files copied. The flow in the README runs his skills (`grill-me`, `grill-with-docs`, `to-spec`, `to-tickets`, `pr`, `setup-matt-pocock-skills` and the helpers they call) from his plugin, `mattpocock-skills@claude-plugins-official`, which updates itself. `skills/ship-grill` is his `grill-me` and `grill-with-docs` with one line added for this flow; the interview is his `grilling` skill. Source: [mattpocock/skills](https://github.com/mattpocock/skills), MIT License, copyright (c) 2026 Matt Pocock.
+No files copied. The flow in the README runs his skills (`grill-me`, `grill-with-docs`, `to-spec`, `pr`, `setup-matt-pocock-skills` and the helpers they call) from his plugin, `mattpocock-skills@claude-plugins-official`, which updates itself. `skills/ship-grill` is his `grill-me` and `grill-with-docs` with one line added for this flow; the interview is his `grilling` skill. `skills/ship-slice` takes the place of his `to-tickets` and builds on its rules: tracer-bullet vertical slices, blocking edges, prefactoring first, expand-migrate-contract for wide refactors, and no file paths in issues. Source: [mattpocock/skills](https://github.com/mattpocock/skills), MIT License, copyright (c) 2026 Matt Pocock.
 
 ## Jesse Vincent: obra/superpowers
 
