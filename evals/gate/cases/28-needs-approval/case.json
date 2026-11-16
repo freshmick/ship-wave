@@ -1,0 +1,25 @@
+{
+  "row": 28,
+  "about": "Row 1's PR in a repo whose default branch needs an approving review the agent can't give.",
+  "lane": "live",
+  "base": "dc2b51d5714eca4dae8bc2897d84cb10a17ea10f",
+  "pr": {
+    "title": "Move long numbers to the next unit when they round up",
+    "branch": "long-number-rounding"
+  },
+  "issue": {
+    "title": "Long numbers that round up show in the next unit"
+  },
+  "checks": [
+    {
+      "name": "build",
+      "state": "pass"
+    }
+  ],
+  "localChecks": "pass",
+  "requiresApproval": true,
+  "expected": {
+    "outcome": "ready",
+    "merged": false
+  }
+}

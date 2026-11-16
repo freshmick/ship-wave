@@ -1,0 +1,24 @@
+{
+  "row": 1,
+  "about": "A real Umami change (umami-software/umami#4658), unaltered.",
+  "lane": "live",
+  "base": "dc2b51d5714eca4dae8bc2897d84cb10a17ea10f",
+  "pr": {
+    "title": "Move long numbers to the next unit when they round up",
+    "branch": "long-number-rounding"
+  },
+  "issue": {
+    "title": "Long numbers that round up show in the next unit"
+  },
+  "checks": [
+    {
+      "name": "build",
+      "state": "pass"
+    }
+  ],
+  "localChecks": "pass",
+  "expected": {
+    "outcome": "ready",
+    "merged": true
+  }
+}

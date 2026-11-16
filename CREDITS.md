@@ -7,3 +7,7 @@ No files copied. The flow in the README runs his skills (`grill-me`, `grill-with
 ## Jesse Vincent: obra/superpowers
 
 No files copied. The idea of a lead's ledger file that survives context compaction comes from [obra/superpowers](https://github.com/obra/superpowers) (`subagent-driven-development`), MIT License.
+
+## Umami Software: umami-software/umami
+
+The eval cases under `evals/gate/cases/` hold small diffs taken from, or written against, [umami-software/umami](https://github.com/umami-software/umami), so the gate is tested on realistic code. Each `case.json` names the pull request its diff comes from. The eval run also clones Umami to build its fixture repositories; nothing from it is installed or run. MIT License, copyright (c) 2022 Umami Software, Inc.; the licence text is in `licenses/umami-LICENSE`.

@@ -1,0 +1,24 @@
+{
+  "row": 26,
+  "about": "A real Umami change (commit 2007a829b), unaltered. The issue asks to hide the access code from view-only members; the PR also hides it from ordinary members, which the issue doesn't say.",
+  "lane": "live",
+  "base": "1202c5582cff1fd58b2bc922bf875709ff14c5fa",
+  "pr": {
+    "title": "Return the team access code only to members who can edit the team",
+    "branch": "team-access-code"
+  },
+  "issue": {
+    "title": "View-only members can read the team access code"
+  },
+  "checks": [
+    {
+      "name": "build",
+      "state": "pass"
+    }
+  ],
+  "localChecks": "pass",
+  "expected": {
+    "outcome": "needs-you",
+    "merged": false
+  }
+}
