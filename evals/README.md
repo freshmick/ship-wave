@@ -52,6 +52,22 @@ Code checks what was published (`lib/slice-checks.mjs`): the eight sections, lab
 | `spec.md` | The spec, published as an issue on the fake remote |
 | `spec-comment.md` | Optional: a comment by the owner that settles something the spec leaves open |
 
+## Building
+
+`build-expectations.md` lists what one of `ship-wave`'s implementers must do with an issue (its step 3). A case under `build/cases/` is one issue.
+
+```sh
+node evals/run.mjs build
+```
+
+These cases run in `build/fixture-repo/`, a small project written for the purpose, not in Umami: the rows that matter here can only be checked by running tests, and its tests run in a second with nothing to install. For a case that expects a pull request, the harness runs its own hidden test of the issue's criteria against the PR, then runs the PR's tests with the source put back to `main`: they must fail, or they don't prove the change.
+
+| File | What it holds |
+|---|---|
+| `case.json` | The issue's title, what is expected (`pr`, `conflict-reported` or `cut-reported`), the rows it reports on, and what must be left alone |
+| `issue.md` | The issue, in `ship-slice`'s contract |
+| `acceptance.test.mjs` | For a `pr` case: the harness's test of the acceptance criteria. The implementer never sees it |
+
 ## Settings
 
 All optional, read from the environment.

@@ -11,13 +11,18 @@ import { exportTree } from './source-repo.mjs';
 // `spec` needs `base` (a commit), `lane` and optionally `localChecks`.
 export function buildBaseRepo({ config, sourceRepo, spec, dir }) {
   const repo = join(dir, 'repo');
-  const origin = join(dir, 'origin.git');
 
   exportTree(sourceRepo, spec.base, repo);
   git(repo, ['init', '--quiet', '--initial-branch', 'main']);
   writeRules(config, spec, repo);
   commitAll(repo, `Import the project at ${spec.base.slice(0, 9)}`);
 
+  return publish(config, repo, dir);
+}
+
+// Gives a committed repository its remote, <dir>/origin.git, and the skills under test.
+export function publish(config, repo, dir) {
+  const origin = join(dir, 'origin.git');
   git(dir, ['clone', '--quiet', '--bare', repo, origin]);
   git(repo, ['remote', 'add', 'origin', origin]);
   git(repo, ['fetch', '--quiet', 'origin']);

@@ -61,7 +61,7 @@ export function prView(state, git) {
     mergedAt: pr.mergedAt ?? null,
     mergeCommit: merged ? { oid: pr.mergedHeadSha } : null,
     autoMergeRequest: null,
-    closingIssuesReferences: [{ number: pr.closes, url: url(state, 'issues', pr.closes) }],
+    closingIssuesReferences: pr.closes ? [{ number: pr.closes, url: url(state, 'issues', pr.closes) }] : [],
     createdAt: pr.createdAt,
     updatedAt: pr.createdAt,
   };

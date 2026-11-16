@@ -1,3 +1,5 @@
+import { loadBuildCases } from './build-case.mjs';
+import { runBuildCase } from './build-suite.mjs';
 import { loadGateCases } from './gate-case.mjs';
 import { runGateCase } from './gate-suite.mjs';
 import { loadSliceCases } from './slice-case.mjs';
@@ -22,6 +24,12 @@ export const SUITES = {
     load: loadSliceCases,
     rowsOf: sliceRows,
     run: ({ config, sourceRepo, item, dir }) => runSliceCase({ config, sourceRepo, sliceCase: item, dir }),
+  },
+  build: {
+    expectations: 'build-expectations.md',
+    load: loadBuildCases,
+    rowsOf: (buildCase) => buildCase.rows,
+    run: ({ config, item, dir }) => runBuildCase({ config, buildCase: item, dir }),
   },
 };
 

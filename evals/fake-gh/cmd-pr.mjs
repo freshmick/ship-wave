@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { bodyOf, numberOf, parseArgs } from './args.mjs';
 import { GhFailure, Unsupported } from './errors.mjs';
 import { printJson } from './output.mjs';
@@ -6,7 +7,7 @@ import { checksOf, findIssue, prView, url } from './views.mjs';
 
 const VALUE_FLAGS = ['json', 'jq', 'template', 'repo', 'body', 'body-file', 'title', 'add-label', 'remove-label', 'state', 'search', 'label', 'limit', 'base', 'head', 'author', 'subject', 'match-head-commit', 'interval', 'add-assignee', 'add-reviewer'];
 
-const COMMANDS = { view, list, diff, checks, edit, comment, merge, ready, review, close: unsupportedWrite, create: unsupportedWrite };
+const COMMANDS = { view, list, diff, checks, edit, comment, merge, ready, review, create, close: unsupportedWrite };
 
 export function runPr([name, ...rest], ctx) {
   const command = COMMANDS[name];
@@ -15,7 +16,33 @@ export function runPr([name, ...rest], ctx) {
 }
 
 function unsupportedWrite() {
-  throw new Unsupported('this fake remote has one pull request; it can not be closed or created');
+  throw new Unsupported('the fake remote can not close a pull request');
+}
+
+// The fake holds one PR. It is created from a branch that was pushed first.
+function create(args, ctx) {
+  ctx.store.update((state) => {
+    if (state.pr) throw new Unsupported('the fake remote holds one pull request, and it already has one');
+    const head = args.one('head') ?? currentBranch();
+    const body = bodyOf(args);
+    if (!args.has('title') || body === undefined) throw new Unsupported('pr create needs --title and --body or --body-file');
+    if (!ctx.git.hasBranch(head)) {
+      throw new GhFailure(`aborted: you must first push the current branch to a remote, or use the --head flag`);
+    }
+    const number = Math.max(...state.issues.map((issue) => issue.number)) + 1;
+    state.pr = {
+      number, title: args.one('title'), body, author: state.viewer, state: 'OPEN', isDraft: args.has('draft'),
+      baseRefName: args.one('base') ?? state.defaultBranch, headRefName: head,
+      closes: Number(/\b(?:fix(?:es)?|close[sd]?|resolve[sd]?)\s+#(\d+)/i.exec(body)?.[1]) || null,
+      labels: args.list('label'), comments: [], reviews: [], reviewComments: [], resolvedThreads: [],
+      createdAt: new Date().toISOString(),
+    };
+    ctx.out(`${url(state, 'pull', number)}\n`);
+  });
+}
+
+function currentBranch() {
+  return execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { encoding: 'utf8' }).trim();
 }
 
 // The fake has one PR. A number, URL or branch that isn't it is "not found".
@@ -114,7 +141,8 @@ function merge(args, ctx) {
     if (!ctx.git.isBehind(base, head)) ctx.git.moveBranch(pr.baseRefName, pr.mergedHeadSha);
     if (args.has('delete-branch')) ctx.git.deleteBranch(pr.headRefName);
     Object.assign(pr, { state: 'MERGED', mergedAt: new Date().toISOString(), mergedWithAdmin: admin });
-    findIssue(state, pr.closes).state = 'CLOSED';
+    const closed = findIssue(state, pr.closes);
+    if (closed) closed.state = 'CLOSED';
     ctx.out(`✓ Merged pull request ${state.repo}#${pr.number} (${pr.title})\n`);
   });
 }

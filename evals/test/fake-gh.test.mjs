@@ -123,3 +123,18 @@ test('a remote with issues only answers issue commands without a repository behi
   assert.equal((await gh('issue', 'view', '6', '--json', 'title', '-q', '.title')).stdout, 'Do the second thing\n');
   assert.equal((await gh('pr', 'view', '7')).exit, 1);
 });
+
+test('pr create makes the one pull request from a pushed branch and reads the issue it closes', async () => {
+  writeState({ pr: undefined });
+  const { stdout } = await gh('pr', 'create', '--draft', '--head', 'change', '--title', 'Second', '--body', 'Fixes #6\n\nDoes it.');
+  assert.match(stdout, /pull\/7\n$/);
+  assert.deepEqual([state().pr.isDraft, state().pr.closes, state().pr.headRefName], [true, 6, 'change']);
+  assert.equal((await gh('pr', 'create', '--head', 'change', '--title', 'Again', '--body', 'x')).exit, 1);
+});
+
+test('pr create refuses a branch that was not pushed', async () => {
+  writeState({ pr: undefined });
+  const { exit, stderr } = await gh('pr', 'create', '--head', 'not-pushed', '--title', 'T', '--body', 'B');
+  assert.equal(exit, 1);
+  assert.match(stderr, /must first push/);
+});
