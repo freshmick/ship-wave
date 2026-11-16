@@ -6,7 +6,8 @@ export function expectationRows(path) {
 }
 
 // Groups run results by row. A row passes only when every run of it passed.
-export function summarise(results, allRows) {
+// `caseRows` are the rows that have a case, run this time or not.
+export function summarise(results, allRows, caseRows) {
   const byRow = new Map();
   for (const result of results) byRow.set(result.row, [...(byRow.get(result.row) ?? []), result]);
   const rows = [...byRow.entries()].map(([row, runs]) => ({
@@ -20,7 +21,8 @@ export function summarise(results, allRows) {
     rows,
     passed: rows.filter((row) => row.passed).length,
     failed: rows.filter((row) => !row.passed).length,
-    notAutomated: allRows.filter((row) => !byRow.has(row)),
+    notRun: caseRows.filter((row) => !byRow.has(row)),
+    notAutomated: allRows.filter((row) => !caseRows.includes(row)),
   };
 }
 
@@ -39,8 +41,9 @@ export function formatSummary(summary) {
   }
   lines.push('');
   lines.push(`${summary.passed} passed, ${summary.failed} failed.`);
+  if (summary.notRun.length) lines.push(`Not run this time: rows ${summary.notRun.join(', ')}`);
   if (summary.notAutomated.length) {
-    lines.push(`Not automated (${summary.notAutomated.length} rows): ${summary.notAutomated.join(', ')}`);
+    lines.push(`No case yet (${summary.notAutomated.length} rows): ${summary.notAutomated.join(', ')}`);
   }
   return lines.join('\n');
 }

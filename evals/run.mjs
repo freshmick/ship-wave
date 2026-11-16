@@ -23,7 +23,8 @@ if (suite !== 'gate') {
 
 const config = loadConfig();
 const wanted = values.rows?.split(',').map(Number);
-const cases = loadGateCases(config).filter((gateCase) => !wanted || wanted.includes(gateCase.row));
+const allCases = loadGateCases(config);
+const cases = allCases.filter((gateCase) => !wanted || wanted.includes(gateCase.row));
 const runs = Number(values.runs);
 const runId = new Date().toISOString().replace(/[:.]/g, '-');
 const sourceRepo = ensureSourceRepo(config);
@@ -39,7 +40,8 @@ const results = await mapPool(jobs, config.concurrency, async ({ gateCase, n }, 
   return result;
 });
 
-const summary = summarise(results, expectationRows(join(config.evalsDir, 'gate-expectations.md')));
+const allRows = expectationRows(join(config.evalsDir, 'gate-expectations.md'));
+const summary = summarise(results, allRows, allCases.map((gateCase) => gateCase.row));
 mkdirSync(config.resultsDir, { recursive: true });
 const resultFile = join(config.resultsDir, `gate-${runId}.json`);
 writeFileSync(resultFile, JSON.stringify(summary, null, 2));
