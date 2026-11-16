@@ -12,7 +12,6 @@ export function summarise(results, allRows, caseRows) {
   for (const result of results) byRow.set(result.row, [...(byRow.get(result.row) ?? []), result]);
   const rows = [...byRow.entries()].map(([row, runs]) => ({
     row,
-    name: runs[0].name,
     expected: runs[0].expected,
     passed: runs.every((run) => run.passed),
     runs,
@@ -30,14 +29,16 @@ export function formatSummary(summary) {
   const lines = [];
   for (const row of summary.rows) {
     const passes = row.runs.filter((run) => run.passed).length;
-    lines.push(`${row.passed ? 'PASS' : 'FAIL'}  row ${row.row}  ${row.name}  (expected ${row.expected}; ${passes}/${row.runs.length} runs passed)`);
-    for (const run of row.runs) {
-      run.failures.forEach((failure) => lines.push(`        - ${failure}`));
-      if (run.unhandledCalls.length) {
-        lines.push(`        - the fake gh could not answer ${run.unhandledCalls.length} call(s): ${run.unhandledCalls.slice(0, 3).join(' | ')}`);
-      }
-      if (!run.passed) lines.push(`          evidence: ${run.dir}`);
+    lines.push(`${row.passed ? 'PASS' : 'FAIL'}  row ${row.row}  (expected ${row.expected}; ${passes}/${row.runs.length} runs passed)`);
+    for (const run of row.runs.filter((item) => !item.passed)) {
+      run.failures.forEach((failure) => lines.push(`        - ${run.name}: ${failure}`));
+      lines.push(`          evidence: ${run.dir}`);
     }
+  }
+  // Calls the fake gh could not answer, once per run directory, not once per row.
+  const gaps = new Map(summary.rows.flatMap((row) => row.runs).filter((run) => run.unhandledCalls.length).map((run) => [run.dir, run]));
+  for (const run of gaps.values()) {
+    lines.push(`NOTE  ${run.name}: the fake gh could not answer ${run.unhandledCalls.length} call(s): ${run.unhandledCalls.slice(0, 3).map((call) => call.slice(0, 80)).join(' | ')}`);
   }
   lines.push('');
   lines.push(`${summary.passed} passed, ${summary.failed} failed.`);

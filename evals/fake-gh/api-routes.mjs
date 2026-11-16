@@ -32,6 +32,7 @@ export const ROUTES = [
   route('POST', 'REPO/issues/(\\d+)/sub_issues', addSubIssue),
   route('GET', 'REPO/issues/(\\d+)/dependencies/blocked_by', ({ ctx, params }) => (itemOf(ctx.store.read(), params[0]).blockedBy ?? []).map((number) => restIssue(ctx.store.read(), number))),
   route('POST', 'REPO/issues/(\\d+)/dependencies/blocked_by', addBlockedBy),
+  route('DELETE', 'REPO/issues/(\\d+)/dependencies/blocked_by/(\\d+)', removeBlockedBy),
   route('GET', 'REPO/labels', ({ ctx }) => ctx.store.read().labels.map((name) => ({ name }))),
   route('POST', 'REPO/labels', ({ ctx, fields }) => ctx.store.update((state) => void state.labels.push(fields.name)) ?? { name: fields.name }),
   route('GET', 'REPO/commits/[^/]+/check-runs', ({ ctx }) => checkRuns(ctx.store.read())),
@@ -167,7 +168,18 @@ function addSubIssue({ ctx, fields, params }) {
 function addBlockedBy({ ctx, fields, params }) {
   return ctx.store.update((state) => {
     const issue = itemOf(state, params[0]);
-    issue.blockedBy = [...new Set([...(issue.blockedBy ?? []), numberOfId(state, fields.issue_id)])];
+    const blocker = numberOfId(state, fields.issue_id);
+    if (blocker === issue.number) throw new GhFailure('Validation Failed: an issue cannot block itself (HTTP 422)');
+    issue.blockedBy = [...new Set([...(issue.blockedBy ?? []), blocker])];
+    return restIssue(state, issue.number);
+  });
+}
+
+function removeBlockedBy({ ctx, params }) {
+  return ctx.store.update((state) => {
+    const issue = itemOf(state, params[0]);
+    const blocker = numberOfId(state, params[1]);
+    issue.blockedBy = (issue.blockedBy ?? []).filter((number) => number !== blocker);
     return restIssue(state, issue.number);
   });
 }

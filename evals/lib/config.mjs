@@ -20,6 +20,8 @@ export function loadConfig(env = process.env) {
     claudeBin: env.EVAL_CLAUDE_BIN ?? 'claude',
     // The model the skill under test runs on: the one waves are run on.
     model: env.EVAL_MODEL ?? 'opus',
+    // The model that judges prose (what was asked, whether an outcome is one outcome).
+    judgeModel: env.EVAL_JUDGE_MODEL ?? 'sonnet',
     maxUsdPerRun: Number(env.EVAL_MAX_USD_PER_RUN ?? 15),
     timeoutMinutes: Number(env.EVAL_TIMEOUT_MINUTES ?? 30),
     concurrency: Number(env.EVAL_CONCURRENCY ?? 2),

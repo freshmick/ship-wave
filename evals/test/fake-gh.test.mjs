@@ -111,6 +111,10 @@ test('a created issue gets the next number and can be linked as a sub-issue and 
   const issues = state().issues;
   assert.equal(issues.find((issue) => issue.number === 8).parent, 6);
   assert.deepEqual(issues.find((issue) => issue.number === 9).blockedBy, [8]);
+
+  assert.equal((await gh('api', 'repos/{owner}/{repo}/issues/9/dependencies/blocked_by', '-F', `issue_id=${await id(9)}`)).exit, 1);
+  await gh('api', '-X', 'DELETE', `repos/{owner}/{repo}/issues/9/dependencies/blocked_by/${await id(8)}`);
+  assert.deepEqual(state().issues.find((issue) => issue.number === 9).blockedBy, []);
 });
 
 test('a remote with issues only answers issue commands without a repository behind it', async () => {
