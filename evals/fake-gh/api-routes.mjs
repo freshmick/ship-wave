@@ -1,6 +1,6 @@
 import { GhFailure } from './errors.mjs';
 import { nextId } from './store.mjs';
-import { checksOf, prView, url } from './views.mjs';
+import { checksOf, findIssue, prView, url } from './views.mjs';
 
 const REPO = 'repos/[^/]+/[^/]+';
 const route = (method, path, handler) => [method, new RegExp(`^${path.replace('REPO', REPO)}$`), handler];
@@ -28,6 +28,10 @@ export const ROUTES = [
   route('DELETE', 'REPO/issues/comments/(\\d+)', ({ ctx, params }) => deleteComment(ctx, 'comments', params[0])),
   route('POST', 'REPO/issues/(\\d+)/labels', addLabels),
   route('DELETE', 'REPO/issues/(\\d+)/labels/(.+)', removeLabel),
+  route('GET', 'REPO/issues/(\\d+)/sub_issues', ({ ctx, params }) => ctx.store.read().issues.filter((issue) => issue.parent === Number(params[0])).map((issue) => restIssue(ctx.store.read(), issue.number))),
+  route('POST', 'REPO/issues/(\\d+)/sub_issues', addSubIssue),
+  route('GET', 'REPO/issues/(\\d+)/dependencies/blocked_by', ({ ctx, params }) => (itemOf(ctx.store.read(), params[0]).blockedBy ?? []).map((number) => restIssue(ctx.store.read(), number))),
+  route('POST', 'REPO/issues/(\\d+)/dependencies/blocked_by', addBlockedBy),
   route('GET', 'REPO/labels', ({ ctx }) => ctx.store.read().labels.map((name) => ({ name }))),
   route('POST', 'REPO/labels', ({ ctx, fields }) => ctx.store.update((state) => void state.labels.push(fields.name)) ?? { name: fields.name }),
   route('GET', 'REPO/commits/[^/]+/check-runs', ({ ctx }) => checkRuns(ctx.store.read())),
@@ -39,7 +43,7 @@ const notFound = () => {
 };
 
 function repoJson(state) {
-  return { full_name: state.repo, name: state.repo.split('/')[1], owner: { login: state.repo.split('/')[0] }, private: false, default_branch: state.pr.baseRefName, allow_auto_merge: false, allow_squash_merge: true };
+  return { full_name: state.repo, name: state.repo.split('/')[1], owner: { login: state.repo.split('/')[0] }, private: false, default_branch: state.defaultBranch, allow_auto_merge: false, allow_squash_merge: true };
 }
 
 function rulesets(state) {
@@ -71,15 +75,19 @@ function restPr(ctx) {
 }
 
 function restIssue(state, number) {
-  const item = number === state.pr.number ? state.pr : number === state.issue.number ? state.issue : notFound();
-  return { number, title: item.title, body: item.body, state: item.state === 'OPEN' ? 'open' : 'closed', user: { login: item.author }, labels: item.labels.map((name) => ({ name })), html_url: url(state, 'issues', number) };
+  const item = itemOf(state, number);
+  return { id: ISSUE_ID_BASE + number, number, title: item.title, body: item.body, state: item.state === 'OPEN' ? 'open' : 'closed', user: { login: item.author }, labels: item.labels.map((name) => ({ name })), html_url: url(state, 'issues', number) };
 }
 
 // Issue comments live on the PR or on the issue, by number.
 function commentsOf(state, number) {
-  if (number === state.pr.number) return state.pr.comments;
-  if (number === state.issue.number) return state.issue.comments;
-  return notFound();
+  return itemOf(state, number).comments;
+}
+
+// The PR or the issue with this number. GitHub numbers both in one sequence.
+function itemOf(state, number) {
+  if (state.pr?.number === Number(number)) return state.pr;
+  return findIssue(state, number) ?? notFound();
 }
 
 const restComment = (comment) => ({ id: comment.id, user: { login: comment.author }, body: comment.body, created_at: comment.createdAt, updated_at: comment.createdAt });
@@ -106,7 +114,8 @@ function addReviewComment({ ctx, fields }) {
 }
 
 function findComment(state, kind, id) {
-  const lists = kind === 'comments' ? [state.pr.comments, state.issue.comments] : [state.pr.reviewComments];
+  const commentLists = [state.pr, ...state.issues].filter(Boolean).map((item) => item.comments);
+  const lists = kind === 'comments' ? commentLists : [state.pr.reviewComments];
   const list = lists.find((items) => items.some((item) => item.id === Number(id))) ?? notFound();
   return { list, comment: list.find((item) => item.id === Number(id)) };
 }
@@ -128,7 +137,7 @@ function deleteComment(ctx, kind, id) {
 
 function addLabels({ ctx, fields, params }) {
   return ctx.store.update((state) => {
-    const item = Number(params[0]) === state.pr.number ? state.pr : state.issue;
+    const item = itemOf(state, params[0]);
     const names = [].concat(fields.labels ?? fields['labels[]'] ?? []);
     item.labels = [...new Set([...item.labels, ...names])];
     return item.labels.map((name) => ({ name }));
@@ -137,9 +146,29 @@ function addLabels({ ctx, fields, params }) {
 
 function removeLabel({ ctx, params }) {
   return ctx.store.update((state) => {
-    const item = Number(params[0]) === state.pr.number ? state.pr : state.issue;
+    const item = itemOf(state, params[0]);
     item.labels = item.labels.filter((name) => name !== decodeURIComponent(params[1]));
     return item.labels.map((name) => ({ name }));
+  });
+}
+
+// The REST API links issues by their id, not their number.
+const ISSUE_ID_BASE = 9000;
+const numberOfId = (state, id) => (findIssue(state, Number(id) - ISSUE_ID_BASE) ?? notFound()).number;
+
+function addSubIssue({ ctx, fields, params }) {
+  return ctx.store.update((state) => {
+    const child = findIssue(state, numberOfId(state, fields.sub_issue_id));
+    child.parent = itemOf(state, params[0]).number;
+    return restIssue(state, child.number);
+  });
+}
+
+function addBlockedBy({ ctx, fields, params }) {
+  return ctx.store.update((state) => {
+    const issue = itemOf(state, params[0]);
+    issue.blockedBy = [...new Set([...(issue.blockedBy ?? []), numberOfId(state, fields.issue_id)])];
+    return restIssue(state, issue.number);
   });
 }
 

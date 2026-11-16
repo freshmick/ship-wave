@@ -47,7 +47,7 @@ function repoView(args, ctx) {
   const [owner, name] = state.repo.split('/');
   const repo = {
     name, nameWithOwner: state.repo, owner: { login: owner }, url: `https://github.com/${state.repo}`,
-    defaultBranchRef: { name: state.pr.baseRefName }, isPrivate: false, visibility: 'PUBLIC',
+    defaultBranchRef: { name: state.defaultBranch }, isPrivate: false, visibility: 'PUBLIC',
     squashMergeAllowed: true, rebaseMergeAllowed: true, mergeCommitAllowed: true,
     autoMergeAllowed: false, deleteBranchOnMerge: false, viewerPermission: 'WRITE',
   };

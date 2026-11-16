@@ -11,7 +11,9 @@ const GROUPS = { pr: runPr, issue: runIssue, api: runApi };
 // Runs one gh invocation. Returns the exit code.
 export async function main(argv, env, io = process) {
   const store = openStore(env.FAKE_GH_STATE, env.FAKE_GH_LOG);
-  const git = openGit(env.FAKE_GH_ORIGIN);
+  // Opened on first use: a remote with issues only has no repository behind it.
+  let opened;
+  const git = new Proxy({}, { get: (_, name) => (opened ??= openGit(env.FAKE_GH_ORIGIN))[name] });
   const [group, ...rest] = argv;
   const run = GROUPS[group] ?? runMisc;
   const ctx = { store, git, argv, out: (text) => io.stdout.write(text) };

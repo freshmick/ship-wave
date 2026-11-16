@@ -61,7 +61,7 @@ export function prView(state, git) {
     mergedAt: pr.mergedAt ?? null,
     mergeCommit: merged ? { oid: pr.mergedHeadSha } : null,
     autoMergeRequest: null,
-    closingIssuesReferences: [{ number: state.issue.number, url: url(state, 'issues', state.issue.number) }],
+    closingIssuesReferences: [{ number: pr.closes, url: url(state, 'issues', pr.closes) }],
     createdAt: pr.createdAt,
     updatedAt: pr.createdAt,
   };
@@ -74,8 +74,9 @@ function mergeState(state, behind) {
   return 'CLEAN';
 }
 
-export function issueView(state) {
-  const issue = state.issue;
+export const findIssue = (state, number) => state.issues.find((issue) => issue.number === Number(number));
+
+export function issueView(state, issue) {
   return {
     number: issue.number,
     title: issue.title,
@@ -85,6 +86,8 @@ export function issueView(state) {
     author: { login: issue.author },
     labels: issue.labels.map((name) => ({ name })),
     assignees: [],
+    parent: issue.parent ? { number: issue.parent } : null,
+    blockedBy: (issue.blockedBy ?? []).map((number) => ({ number })),
     comments: issue.comments.map((comment) => commentView(state, issue.number, comment)),
     createdAt: issue.createdAt,
     updatedAt: issue.createdAt,

@@ -2,7 +2,7 @@ import { bodyOf, numberOf, parseArgs } from './args.mjs';
 import { GhFailure, Unsupported } from './errors.mjs';
 import { printJson } from './output.mjs';
 import { nextId } from './store.mjs';
-import { checksOf, prView, url } from './views.mjs';
+import { checksOf, findIssue, prView, url } from './views.mjs';
 
 const VALUE_FLAGS = ['json', 'jq', 'template', 'repo', 'body', 'body-file', 'title', 'add-label', 'remove-label', 'state', 'search', 'label', 'limit', 'base', 'head', 'author', 'subject', 'match-head-commit', 'interval', 'add-assignee', 'add-reviewer'];
 
@@ -21,6 +21,7 @@ function unsupportedWrite() {
 // The fake has one PR. A number, URL or branch that isn't it is "not found".
 function requirePr(args, state) {
   const target = args.positionals[0];
+  if (!state.pr) throw new GhFailure(`no pull requests found for "${target ?? 'the current branch'}"`);
   const isIt = target === undefined || numberOf(target) === state.pr.number || target === state.pr.headRefName;
   if (!isIt) throw new GhFailure(`no pull requests found for "${target}"`);
 }
@@ -37,6 +38,7 @@ function view(args, ctx) {
 
 function list(args, ctx) {
   const state = ctx.store.read();
+  if (!state.pr) return args.has('json') ? ctx.out('[]\n') : undefined;
   const pr = prView(state, ctx.git);
   const wanted = (args.one('state') ?? 'open').toUpperCase();
   const stateOk = wanted === 'ALL' || wanted === pr.state;
@@ -112,7 +114,7 @@ function merge(args, ctx) {
     if (!ctx.git.isBehind(base, head)) ctx.git.moveBranch(pr.baseRefName, pr.mergedHeadSha);
     if (args.has('delete-branch')) ctx.git.deleteBranch(pr.headRefName);
     Object.assign(pr, { state: 'MERGED', mergedAt: new Date().toISOString(), mergedWithAdmin: admin });
-    state.issue.state = 'CLOSED';
+    findIssue(state, pr.closes).state = 'CLOSED';
     ctx.out(`✓ Merged pull request ${state.repo}#${pr.number} (${pr.title})\n`);
   });
 }

@@ -36,6 +36,7 @@ export function initialGhState(gateCase, values) {
   const viewer = 'sam-owner';
   return {
     repo: 'acme-analytics/umami',
+    defaultBranch: 'main',
     viewer,
     requiresApproval: gateCase.requiresApproval ?? false,
     labels: ['ready-for-agent'],
@@ -43,6 +44,7 @@ export function initialGhState(gateCase, values) {
     checksAfterRerun: gateCase.checksAfterRerun,
     pr: {
       number: values.pr,
+      closes: values.issue,
       title: gateCase.pr.title,
       body: read('pr-body.md'),
       author: viewer,
@@ -57,7 +59,7 @@ export function initialGhState(gateCase, values) {
       resolvedThreads: [],
       createdAt: CREATED_AT,
     },
-    issue: {
+    issues: [{
       number: values.issue,
       title: gateCase.issue.title,
       body: read('issue.md'),
@@ -66,6 +68,6 @@ export function initialGhState(gateCase, values) {
       labels: ['ready-for-agent'],
       comments: [],
       createdAt: CREATED_AT,
-    },
+    }],
   };
 }

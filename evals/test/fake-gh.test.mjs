@@ -30,9 +30,9 @@ beforeEach(() => {
 function writeState(overrides) {
   const comment = { comments: [], createdAt: '2026-11-02T09:00:00Z', author: 'sam-owner', state: 'OPEN', labels: [] };
   writeFileSync(env.FAKE_GH_STATE, JSON.stringify({
-    repo: 'acme/app', viewer: 'sam-owner', requiresApproval: false, labels: [], checks: [{ name: 'build', state: 'pass' }],
-    pr: { ...comment, number: 7, title: 'Second', body: 'Fixes #6', isDraft: false, baseRefName: 'main', headRefName: 'change', reviews: [], reviewComments: [], resolvedThreads: [] },
-    issue: { ...comment, number: 6, title: 'Do the second thing', body: 'Outcome' },
+    repo: 'acme/app', defaultBranch: 'main', viewer: 'sam-owner', requiresApproval: false, labels: [], checks: [{ name: 'build', state: 'pass' }],
+    pr: { ...comment, number: 7, closes: 6, title: 'Second', body: 'Fixes #6', isDraft: false, baseRefName: 'main', headRefName: 'change', reviews: [], reviewComments: [], resolvedThreads: [] },
+    issues: [{ ...comment, number: 6, title: 'Do the second thing', body: 'Outcome' }],
     ...overrides,
   }));
 }
@@ -71,7 +71,7 @@ test('merge moves main to the PR head and closes the issue', async () => {
   const { exit } = await gh('pr', 'merge', '7', '--squash', '--delete-branch');
   assert.equal(exit, 0);
   assert.equal(state().pr.state, 'MERGED');
-  assert.equal(state().issue.state, 'CLOSED');
+  assert.equal(state().issues[0].state, 'CLOSED');
   assert.equal(git(env.FAKE_GH_ORIGIN, ['log', '-1', '--format=%s', 'main']), 'second');
 });
 
@@ -97,4 +97,25 @@ test('a call the fake does not cover fails and is logged as unhandled', async ()
   assert.equal(exit, 1);
   assert.match(stderr, /does not serve/);
   assert.deepEqual(log().map((entry) => entry.handled), [false]);
+});
+
+test('a created issue gets the next number and can be linked as a sub-issue and a blocker', async () => {
+  const first = (await gh('issue', 'create', '--title', 'Slice one', '--body', '## Outcome', '--label', 'ready-for-agent')).stdout;
+  await gh('issue', 'create', '--title', 'Slice two', '--body', '## Outcome');
+  assert.match(first, /issues\/8\n$/);
+  const id = (number) => gh('api', `repos/{owner}/{repo}/issues/${number}`, '-q', '.id').then((result) => result.stdout.trim());
+
+  await gh('api', 'repos/{owner}/{repo}/issues/6/sub_issues', '-F', `sub_issue_id=${await id(8)}`);
+  await gh('api', 'repos/{owner}/{repo}/issues/9/dependencies/blocked_by', '-F', `issue_id=${await id(8)}`);
+
+  const issues = state().issues;
+  assert.equal(issues.find((issue) => issue.number === 8).parent, 6);
+  assert.deepEqual(issues.find((issue) => issue.number === 9).blockedBy, [8]);
+});
+
+test('a remote with issues only answers issue commands without a repository behind it', async () => {
+  writeState({ pr: undefined });
+  delete env.FAKE_GH_ORIGIN;
+  assert.equal((await gh('issue', 'view', '6', '--json', 'title', '-q', '.title')).stdout, 'Do the second thing\n');
+  assert.equal((await gh('pr', 'view', '7')).exit, 1);
 });
