@@ -1,0 +1,46 @@
+import { readFileSync } from 'node:fs';
+
+// The row numbers in an expectations file: every table line that starts `| <n> |`.
+export function expectationRows(path) {
+  return [...readFileSync(path, 'utf8').matchAll(/^\|\s*(\d+)\s*\|/gm)].map((match) => Number(match[1]));
+}
+
+// Groups run results by row. A row passes only when every run of it passed.
+export function summarise(results, allRows) {
+  const byRow = new Map();
+  for (const result of results) byRow.set(result.row, [...(byRow.get(result.row) ?? []), result]);
+  const rows = [...byRow.entries()].map(([row, runs]) => ({
+    row,
+    name: runs[0].name,
+    expected: runs[0].expected,
+    passed: runs.every((run) => run.passed),
+    runs,
+  }));
+  return {
+    rows,
+    passed: rows.filter((row) => row.passed).length,
+    failed: rows.filter((row) => !row.passed).length,
+    notAutomated: allRows.filter((row) => !byRow.has(row)),
+  };
+}
+
+export function formatSummary(summary) {
+  const lines = [];
+  for (const row of summary.rows) {
+    const passes = row.runs.filter((run) => run.passed).length;
+    lines.push(`${row.passed ? 'PASS' : 'FAIL'}  row ${row.row}  ${row.name}  (expected ${row.expected}; ${passes}/${row.runs.length} runs passed)`);
+    for (const run of row.runs) {
+      run.failures.forEach((failure) => lines.push(`        - ${failure}`));
+      if (run.unhandledCalls.length) {
+        lines.push(`        - the fake gh could not answer ${run.unhandledCalls.length} call(s): ${run.unhandledCalls.slice(0, 3).join(' | ')}`);
+      }
+      if (!run.passed) lines.push(`          evidence: ${run.dir}`);
+    }
+  }
+  lines.push('');
+  lines.push(`${summary.passed} passed, ${summary.failed} failed.`);
+  if (summary.notAutomated.length) {
+    lines.push(`Not automated (${summary.notAutomated.length} rows): ${summary.notAutomated.join(', ')}`);
+  }
+  return lines.join('\n');
+}

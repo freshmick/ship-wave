@@ -1,0 +1,6 @@
+#!/usr/bin/env node
+// A stand-in for the GitHub CLI. It answers from a state file, records every
+// call, and never reaches the network. See ../README.md.
+import { main } from './main.mjs';
+
+process.exitCode = await main(process.argv.slice(2), process.env);
