@@ -1,5 +1,6 @@
 import { loadBuildCases } from './build-case.mjs';
 import { runBuildCase } from './build-suite.mjs';
+import { loadFlowCases, runFlowCase } from './flow-suite.mjs';
 import { loadGateCases } from './gate-case.mjs';
 import { runGateCase } from './gate-suite.mjs';
 import { loadSliceCases } from './slice-case.mjs';
@@ -30,6 +31,12 @@ export const SUITES = {
     load: loadBuildCases,
     rowsOf: (buildCase) => buildCase.rows,
     run: ({ config, item, dir }) => runBuildCase({ config, buildCase: item, dir }),
+  },
+  flow: {
+    expectations: 'flow-expectations.md',
+    load: loadFlowCases,
+    rowsOf: () => [1, 2, 3, 4, 5, 6],
+    run: ({ config, item, dir }) => runFlowCase({ config, flowCase: item, dir }),
   },
 };
 

@@ -10,7 +10,7 @@ const TOOLS = 'Bash Read Write Edit Glob Grep Agent Skill';
 // Pass `resume` (a session id from an earlier turn) to continue that session,
 // and `turn` to name this turn's transcript, <dir>/<turn>.jsonl.
 // Resolves with how the turn ended, its last message and the session id.
-export function runAgent({ config, prompt, cwd, dir, ghEnv, resume, turn = 'transcript', keepSession = false }) {
+export function runAgent({ config, prompt, cwd, dir, ghEnv, resume, turn = 'transcript', keepSession = false, timeoutMinutes = config.timeoutMinutes, maxUsd = config.maxUsdPerRun }) {
   const args = [
     '--print',
     '--setting-sources', 'project',
@@ -18,7 +18,7 @@ export function runAgent({ config, prompt, cwd, dir, ghEnv, resume, turn = 'tran
     '--allowedTools', TOOLS,
     '--output-format', 'stream-json',
     '--verbose',
-    '--max-budget-usd', String(config.maxUsdPerRun),
+    '--max-budget-usd', String(maxUsd),
   ];
   if (config.model) args.push('--model', config.model);
   if (resume) args.push('--resume', resume);
@@ -50,7 +50,7 @@ export function runAgent({ config, prompt, cwd, dir, ghEnv, resume, turn = 'tran
     const transcript = join(dir, `${turn}.jsonl`);
     const out = child.stdout.pipe(createWriteStream(transcript));
     child.stderr.pipe(createWriteStream(join(dir, `${turn}.stderr.log`)));
-    const timer = setTimeout(() => child.kill('SIGTERM'), config.timeoutMinutes * 60_000);
+    const timer = setTimeout(() => child.kill('SIGTERM'), timeoutMinutes * 60_000);
     child.on('close', (code, signal) => {
       clearTimeout(timer);
       out.end(() => resolve({ exitCode: code, timedOut: signal === 'SIGTERM', ...lastResult(transcript) }));

@@ -16,14 +16,14 @@ export function loadSliceCases(config) {
 }
 
 // The fake remote's starting state: the spec as an open issue, no pull request.
-export function initialSliceState(sliceCase) {
+export function initialSliceState(sliceCase, repo = 'acme-analytics/umami') {
   const viewer = 'sam-owner';
   const commentPath = join(sliceCase.dir, 'spec-comment.md');
   const comments = existsSync(commentPath)
     ? [{ id: 500, author: viewer, body: readFileSync(commentPath, 'utf8'), createdAt: CREATED_AT }]
     : [];
   return {
-    repo: 'acme-analytics/umami',
+    repo,
     defaultBranch: 'main',
     viewer,
     requiresApproval: false,

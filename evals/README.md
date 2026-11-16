@@ -68,6 +68,16 @@ These cases run in `build/fixture-repo/`, a small project written for the purpos
 | `issue.md` | The issue, in `ship-slice`'s contract |
 | `acceptance.test.mjs` | For a `pr` case: the harness's test of the acceptance criteria. The implementer never sees it |
 
+## The whole flow
+
+`flow-expectations.md` lists what must hold when one spec goes through `ship-slice`, `ship-wave` and `pr-gate` in turn with nobody helping.
+
+```sh
+node evals/run.mjs flow
+```
+
+The case under `flow/cases/` is a small spec for the `build/fixture-repo/` project. The harness plays the slicing conversation, then starts `ship-wave` in a fresh session over the issues that were published. When everything has merged it runs the default branch's own tests and its hidden test of the spec's criteria. This is the longest and dearest run: one pass does the work of a slicing run plus a building run and a gate run for every slice.
+
 ## Settings
 
 All optional, read from the environment.
@@ -79,6 +89,8 @@ All optional, read from the environment.
 | `EVAL_CONCURRENCY` | `2` | Runs at the same time |
 | `EVAL_MAX_USD_PER_RUN` | `15` | Spending limit for one run |
 | `EVAL_TIMEOUT_MINUTES` | `30` | Time limit for one run |
+| `EVAL_MAX_USD_PER_WAVE` | `30` | Spending limit for the wave turn of the whole-flow run |
+| `EVAL_WAVE_TIMEOUT_MINUTES` | `75` | Time limit for that turn |
 | `EVAL_WORK_DIR` | the system temp directory | Where fixture repositories are built |
 | `EVAL_CACHE_DIR` | `evals/.cache` | Where Umami is cloned, once |
 | `EVAL_RESULTS_DIR` | `evals/results` | Where the JSON results go |

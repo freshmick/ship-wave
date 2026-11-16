@@ -24,6 +24,9 @@ export function loadConfig(env = process.env) {
     judgeModel: env.EVAL_JUDGE_MODEL ?? 'sonnet',
     maxUsdPerRun: Number(env.EVAL_MAX_USD_PER_RUN ?? 15),
     timeoutMinutes: Number(env.EVAL_TIMEOUT_MINUTES ?? 30),
+    // The end-to-end run's wave turn does the work of many runs.
+    waveTimeoutMinutes: Number(env.EVAL_WAVE_TIMEOUT_MINUTES ?? 75),
+    maxUsdPerWave: Number(env.EVAL_MAX_USD_PER_WAVE ?? 30),
     concurrency: Number(env.EVAL_CONCURRENCY ?? 2),
   };
 }

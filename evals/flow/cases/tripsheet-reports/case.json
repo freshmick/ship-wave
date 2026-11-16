@@ -1,0 +1,25 @@
+{
+  "about": "A small spec with one decision left open: what a report shows when no trip falls on or after the since date. It must be asked while slicing and never again.",
+  "lane": "mvp",
+  "spec": {
+    "number": 40,
+    "title": "Reports the office can work with"
+  },
+  "criteria": [
+    "C1",
+    "C2",
+    "C3",
+    "C4"
+  ],
+  "consentCriterion": null,
+  "planted": [
+    {
+      "id": "empty-report",
+      "row": 1,
+      "ask": true,
+      "what": "What a report shows when no trip falls on or after the since date: the spec doesn't say (only a total line, a message, or an error).",
+      "answer": "A report with no trips since the date shows only the total line, with 0 trips."
+    }
+  ],
+  "expectQuestions": true
+}
