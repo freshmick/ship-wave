@@ -69,7 +69,7 @@ function create(args, ctx) {
   ctx.store.update((state) => {
     const body = bodyOf(args);
     if (!args.has('title') || body === undefined) throw new Unsupported('issue create needs --title and --body or --body-file');
-    const number = Math.max(state.pr?.number ?? 0, ...state.issues.map((issue) => issue.number)) + 1;
+    const number = Math.max(0, ...[...state.issues, ...state.prs].map((item) => item.number)) + 1;
     state.issues.push({
       number, title: args.one('title'), body, author: state.viewer, state: 'OPEN',
       labels: args.list('label'), comments: [], createdAt: new Date().toISOString(),

@@ -6,7 +6,7 @@ const VERDICT = /<!--\s*pr-gate\s+verdict=([\w-]+)/;
 const QUESTION_MARK = '<!-- pr-gate needs-you -->';
 
 export function observe(state, log) {
-  const pr = state.pr;
+  const [pr] = state.prs;
   const gateComments = pr.comments.filter((comment) => VERDICT.test(comment.body));
   return {
     labels: pr.labels,

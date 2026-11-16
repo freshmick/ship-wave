@@ -20,8 +20,11 @@ export function checksOf(state) {
   }));
 }
 
-export function prView(state, git) {
-  const pr = state.pr;
+export const PR_FIELDS = ['number', 'title', 'body', 'state', 'isDraft', 'url', 'author', 'baseRefName', 'headRefName', 'baseRefOid', 'headRefOid', 'labels', 'files', 'additions', 'deletions', 'changedFiles', 'commits', 'comments', 'reviews', 'reviewDecision', 'statusCheckRollup', 'mergeable', 'mergeStateStatus', 'mergedAt', 'mergeCommit', 'autoMergeRequest', 'closingIssuesReferences', 'createdAt', 'updatedAt'];
+
+export const findPr = (state, number) => state.prs.find((pr) => pr.number === Number(number));
+
+export function prView(state, git, pr) {
   const merged = pr.state === 'MERGED';
   const base = merged ? pr.mergedBaseSha : `refs/heads/${pr.baseRefName}`;
   const head = merged ? pr.mergedHeadSha : `refs/heads/${pr.headRefName}`;

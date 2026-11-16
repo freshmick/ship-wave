@@ -3,7 +3,7 @@ import { bodyOf, numberOf, parseArgs } from './args.mjs';
 import { GhFailure, Unsupported } from './errors.mjs';
 import { printJson } from './output.mjs';
 import { nextId } from './store.mjs';
-import { checksOf, findIssue, prView, url } from './views.mjs';
+import { PR_FIELDS, checksOf, findIssue, prView, url } from './views.mjs';
 
 const VALUE_FLAGS = ['json', 'jq', 'template', 'repo', 'body', 'body-file', 'title', 'add-label', 'remove-label', 'state', 'search', 'label', 'limit', 'base', 'head', 'author', 'subject', 'match-head-commit', 'interval', 'add-assignee', 'add-reviewer'];
 
@@ -19,24 +19,26 @@ function unsupportedWrite() {
   throw new Unsupported('the fake remote can not close a pull request');
 }
 
-// The fake holds one PR. It is created from a branch that was pushed first.
+// A PR is created from a branch that was pushed first.
 function create(args, ctx) {
   ctx.store.update((state) => {
-    if (state.pr) throw new Unsupported('the fake remote holds one pull request, and it already has one');
     const head = args.one('head') ?? currentBranch();
     const body = bodyOf(args);
     if (!args.has('title') || body === undefined) throw new Unsupported('pr create needs --title and --body or --body-file');
     if (!ctx.git.hasBranch(head)) {
       throw new GhFailure(`aborted: you must first push the current branch to a remote, or use the --head flag`);
     }
-    const number = Math.max(...state.issues.map((issue) => issue.number)) + 1;
-    state.pr = {
+    if (state.prs.some((pr) => pr.headRefName === head && pr.state === 'OPEN')) {
+      throw new GhFailure(`a pull request for branch "${head}" into branch "${state.defaultBranch}" already exists`);
+    }
+    const number = Math.max(0, ...[...state.issues, ...state.prs].map((item) => item.number)) + 1;
+    state.prs.push({
       number, title: args.one('title'), body, author: state.viewer, state: 'OPEN', isDraft: args.has('draft'),
       baseRefName: args.one('base') ?? state.defaultBranch, headRefName: head,
       closes: Number(/\b(?:fix(?:es)?|close[sd]?|resolve[sd]?)\s+#(\d+)/i.exec(body)?.[1]) || null,
       labels: args.list('label'), comments: [], reviews: [], reviewComments: [], resolvedThreads: [],
       createdAt: new Date().toISOString(),
-    };
+    });
     ctx.out(`${url(state, 'pull', number)}\n`);
   });
 }
@@ -45,18 +47,27 @@ function currentBranch() {
   return execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { encoding: 'utf8' }).trim();
 }
 
-// The fake has one PR. A number, URL or branch that isn't it is "not found".
+// The PR a command names: by number, URL or branch. With no argument it is the
+// PR of the branch checked out where gh runs, or the only PR there is.
 function requirePr(args, state) {
   const target = args.positionals[0];
-  if (!state.pr) throw new GhFailure(`no pull requests found for "${target ?? 'the current branch'}"`);
-  const isIt = target === undefined || numberOf(target) === state.pr.number || target === state.pr.headRefName;
-  if (!isIt) throw new GhFailure(`no pull requests found for "${target}"`);
+  const named = (value) => state.prs.find((pr) => pr.number === numberOf(value) || pr.headRefName === value);
+  const pr = target === undefined ? (named(currentBranchOrNone()) ?? (state.prs.length === 1 ? state.prs[0] : undefined)) : named(target);
+  if (!pr) throw new GhFailure(`no pull requests found for "${target ?? 'the current branch'}"`);
+  return pr;
+}
+
+function currentBranchOrNone() {
+  try {
+    return currentBranch();
+  } catch {
+    return undefined;
+  }
 }
 
 function view(args, ctx) {
   const state = ctx.store.read();
-  requirePr(args, state);
-  const pr = prView(state, ctx.git);
+  const pr = prView(state, ctx.git, requirePr(args, state));
   if (args.has('json')) return printJson(ctx, args, pr);
   const labels = pr.labels.map((label) => label.name).join(', ');
   ctx.out(`title:\t${pr.title}\nstate:\t${pr.isDraft ? 'DRAFT' : pr.state}\nauthor:\t${pr.author.login}\nlabels:\t${labels}\nnumber:\t${pr.number}\nurl:\t${pr.url}\nadditions:\t${pr.additions}\ndeletions:\t${pr.deletions}\n--\n${pr.body}\n`);
@@ -65,20 +76,21 @@ function view(args, ctx) {
 
 function list(args, ctx) {
   const state = ctx.store.read();
-  if (!state.pr) return args.has('json') ? ctx.out('[]\n') : undefined;
-  const pr = prView(state, ctx.git);
   const wanted = (args.one('state') ?? 'open').toUpperCase();
-  const stateOk = wanted === 'ALL' || wanted === pr.state;
-  const labelsOk = args.list('label').every((name) => state.pr.labels.includes(name));
-  const prs = stateOk && labelsOk ? [pr] : [];
-  if (args.has('json')) return printJson(ctx, args, prs, Object.keys(pr));
+  const labels = args.list('label');
+  const prs = state.prs
+    .filter((pr) => wanted === 'ALL' || wanted === pr.state)
+    .filter((pr) => labels.every((name) => pr.labels.includes(name)))
+    .filter((pr) => !args.has('head') || pr.headRefName === args.one('head'))
+    .filter((pr) => !args.has('search') || `${pr.title} ${pr.body} ${pr.headRefName}`.includes(args.one('search')))
+    .map((pr) => prView(state, ctx.git, pr));
+  if (args.has('json')) return printJson(ctx, args, prs, PR_FIELDS);
   prs.forEach((item) => ctx.out(`${item.number}\t${item.title}\t${item.headRefName}\t${item.isDraft ? 'DRAFT' : item.state}\n`));
 }
 
 function diff(args, ctx) {
   const state = ctx.store.read();
-  requirePr(args, state);
-  const pr = prView(state, ctx.git);
+  const pr = prView(state, ctx.git, requirePr(args, state));
   const flags = args.has('name-only') ? ['--name-only'] : [];
   ctx.out(`${ctx.git.diff(pr.baseRefOid, pr.headRefOid, ...flags)}\n`);
 }
@@ -86,10 +98,10 @@ function diff(args, ctx) {
 // Exit codes as gh: 0 all passed, 1 a check failed, 8 still pending.
 function checks(args, ctx) {
   const state = ctx.store.read();
-  requirePr(args, state);
+  const pr = requirePr(args, state);
   const rows = checksOf(state);
   if (args.has('json')) printJson(ctx, args, rows);
-  else if (!rows.length) ctx.out(`no checks reported on the '${state.pr.headRefName}' branch\n`);
+  else if (!rows.length) ctx.out(`no checks reported on the '${pr.headRefName}' branch\n`);
   else rows.forEach((row) => ctx.out(`${row.name}\t${row.bucket}\t1m0s\t${row.link}\n`));
   if (rows.some((row) => row.bucket === 'fail')) return 1;
   if (rows.some((row) => row.bucket === 'pending')) return 8;
@@ -97,8 +109,7 @@ function checks(args, ctx) {
 
 function edit(args, ctx) {
   ctx.store.update((state) => {
-    requirePr(args, state);
-    const pr = state.pr;
+    const pr = requirePr(args, state);
     const body = bodyOf(args);
     if (body !== undefined) pr.body = body;
     if (args.has('title')) pr.title = args.one('title');
@@ -110,8 +121,7 @@ function edit(args, ctx) {
 
 function comment(args, ctx) {
   ctx.store.update((state) => {
-    requirePr(args, state);
-    const pr = state.pr;
+    const pr = requirePr(args, state);
     const body = bodyOf(args);
     if (body === undefined) throw new Unsupported('pr comment needs --body or --body-file');
     const last = pr.comments.findLast((item) => item.author === state.viewer);
@@ -123,8 +133,7 @@ function comment(args, ctx) {
 
 function merge(args, ctx) {
   return ctx.store.update((state) => {
-    requirePr(args, state);
-    const pr = state.pr;
+    const pr = requirePr(args, state);
     const admin = args.has('admin');
     if (pr.state === 'MERGED') return void ctx.out(`! Pull request ${state.repo}#${pr.number} was already merged\n`);
     if (state.requiresApproval && !admin) {
@@ -136,9 +145,12 @@ function merge(args, ctx) {
     }
     const base = `refs/heads/${pr.baseRefName}`;
     const head = `refs/heads/${pr.headRefName}`;
+    // Up to date with the base: the base moves to the head. Behind it: a squash commit.
+    const merged = ctx.git.isBehind(base, head) ? ctx.git.squash(base, head, `${pr.title} (#${pr.number})`) : ctx.git.sha(head);
+    if (!merged) throw new GhFailure(`Pull request ${state.repo}#${pr.number} is not mergeable: the merge commit cannot be cleanly created.`);
     pr.mergedBaseSha = ctx.git.sha(base);
     pr.mergedHeadSha = ctx.git.sha(head);
-    if (!ctx.git.isBehind(base, head)) ctx.git.moveBranch(pr.baseRefName, pr.mergedHeadSha);
+    ctx.git.moveBranch(pr.baseRefName, merged);
     if (args.has('delete-branch')) ctx.git.deleteBranch(pr.headRefName);
     Object.assign(pr, { state: 'MERGED', mergedAt: new Date().toISOString(), mergedWithAdmin: admin });
     const closed = findIssue(state, pr.closes);
@@ -149,21 +161,21 @@ function merge(args, ctx) {
 
 function ready(args, ctx) {
   ctx.store.update((state) => {
-    requirePr(args, state);
-    state.pr.isDraft = args.has('undo');
-    ctx.out(`✓ Pull request ${state.repo}#${state.pr.number} is marked as "${state.pr.isDraft ? 'draft' : 'ready for review'}"\n`);
+    const pr = requirePr(args, state);
+    pr.isDraft = args.has('undo');
+    ctx.out(`✓ Pull request ${state.repo}#${pr.number} is marked as "${pr.isDraft ? 'draft' : 'ready for review'}"\n`);
   });
 }
 
 function review(args, ctx) {
   ctx.store.update((state) => {
-    requirePr(args, state);
+    const pr = requirePr(args, state);
     const kind = ['approve', 'request-changes', 'comment'].find((name) => args.has(name));
     if (!kind) throw new Unsupported('pr review needs --approve, --request-changes or --comment');
-    if (kind !== 'comment' && state.viewer === state.pr.author) {
+    if (kind !== 'comment' && state.viewer === pr.author) {
       throw new GhFailure(`failed to create review: Can not ${kind === 'approve' ? 'approve' : 'request changes on'} your own pull request`);
     }
     const reviewState = { approve: 'APPROVED', 'request-changes': 'CHANGES_REQUESTED', comment: 'COMMENTED' }[kind];
-    state.pr.reviews.push({ id: nextId(state), author: { login: state.viewer }, state: reviewState, body: bodyOf(args) ?? '' });
+    pr.reviews.push({ id: nextId(state), author: { login: state.viewer }, state: reviewState, body: bodyOf(args) ?? '' });
   });
 }

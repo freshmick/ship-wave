@@ -5,7 +5,7 @@ import { check, observe, outcomeOf } from '../lib/outcome.mjs';
 const GATE_COMMENT = '<!-- pr-gate verdict=clear sha=abc123 -->\n**Ready to merge**';
 
 function stateWith(pr = {}) {
-  return { pr: { state: 'OPEN', labels: [], body: 'Fixes #100', comments: [], reviewComments: [], ...pr } };
+  return { prs: [{ state: 'OPEN', labels: [], body: 'Fixes #100', comments: [], reviewComments: [], ...pr }] };
 }
 
 const call = (argv, handled = true) => ({ argv: argv.split(' '), handled });

@@ -28,6 +28,7 @@ export function initialBuildState(buildCase) {
     requiresApproval: false,
     labels: ['ready-for-agent'],
     checks: [],
+    prs: [],
     issues: [issue(40, 'Reports the office can work with', 'The parent spec. Its slices are its sub-issues.', []), { ...child, parent: 40 }],
   };
 }

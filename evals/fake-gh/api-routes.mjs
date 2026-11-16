@@ -1,6 +1,6 @@
 import { GhFailure } from './errors.mjs';
 import { nextId } from './store.mjs';
-import { checksOf, findIssue, prView, url } from './views.mjs';
+import { checksOf, findIssue, findPr, prView, url } from './views.mjs';
 
 const REPO = 'repos/[^/]+/[^/]+';
 const route = (method, path, handler) => [method, new RegExp(`^${path.replace('REPO', REPO)}$`), handler];
@@ -13,12 +13,12 @@ export const ROUTES = [
   route('GET', 'REPO/rules/branches/[^/]+', ({ ctx }) => branchRules(ctx.store.read())),
   route('GET', 'REPO/branches/[^/]+/protection', ({ ctx }) => protection(ctx.store.read())),
   route('GET', 'REPO/branches/[^/]+/protection/required_pull_request_reviews', ({ ctx }) => protection(ctx.store.read()).required_pull_request_reviews),
-  route('GET', 'REPO/pulls/(\\d+)', ({ ctx }) => restPr(ctx)),
-  route('GET', 'REPO/pulls/(\\d+)/files', ({ ctx }) => prView(ctx.store.read(), ctx.git).files.map((file) => ({ filename: file.path, additions: file.additions, deletions: file.deletions }))),
-  route('GET', 'REPO/pulls/(\\d+)/reviews', ({ ctx }) => ctx.store.read().pr.reviews),
-  route('GET', 'REPO/pulls/(\\d+)/comments', ({ ctx }) => ctx.store.read().pr.reviewComments.map(restReviewComment)),
+  route('GET', 'REPO/pulls/(\\d+)', ({ ctx, params }) => restPr(ctx, params[0])),
+  route('GET', 'REPO/pulls/(\\d+)/files', ({ ctx, params }) => prView(ctx.store.read(), ctx.git, prOf(ctx.store.read(), params[0])).files.map((file) => ({ filename: file.path, additions: file.additions, deletions: file.deletions }))),
+  route('GET', 'REPO/pulls/(\\d+)/reviews', ({ ctx, params }) => prOf(ctx.store.read(), params[0]).reviews),
+  route('GET', 'REPO/pulls/(\\d+)/comments', ({ ctx, params }) => prOf(ctx.store.read(), params[0]).reviewComments.map(restReviewComment)),
   route('POST', 'REPO/pulls/(\\d+)/comments', addReviewComment),
-  route('POST', 'REPO/pulls/(\\d+)/comments/(\\d+)/replies', ({ ctx, fields, params }) => addReviewComment({ ctx, fields: { ...fields, in_reply_to: Number(params[1]) } })),
+  route('POST', 'REPO/pulls/(\\d+)/comments/(\\d+)/replies', ({ ctx, fields, params }) => addReviewComment({ ctx, params, fields: { ...fields, in_reply_to: Number(params[1]) } })),
   route('PATCH', 'REPO/pulls/comments/(\\d+)', ({ ctx, fields, params }) => editComment(ctx, 'reviewComments', params[0], fields)),
   route('DELETE', 'REPO/pulls/comments/(\\d+)', ({ ctx, params }) => deleteComment(ctx, 'reviewComments', params[0])),
   route('GET', 'REPO/issues/(\\d+)', ({ ctx, params }) => restIssue(ctx.store.read(), Number(params[0]))),
@@ -62,9 +62,11 @@ function protection(state) {
   return { required_pull_request_reviews: { required_approving_review_count: 1, dismiss_stale_reviews: true }, enforce_admins: { enabled: false }, required_status_checks: null };
 }
 
-function restPr(ctx) {
+const prOf = (state, number) => findPr(state, number) ?? notFound();
+
+function restPr(ctx, number) {
   const state = ctx.store.read();
-  const pr = prView(state, ctx.git);
+  const pr = prView(state, ctx.git, prOf(state, number));
   return {
     number: pr.number, title: pr.title, body: pr.body, draft: pr.isDraft, html_url: pr.url,
     state: pr.state === 'OPEN' ? 'open' : 'closed', merged: pr.state === 'MERGED',
@@ -87,8 +89,7 @@ function commentsOf(state, number) {
 
 // The PR or the issue with this number. GitHub numbers both in one sequence.
 function itemOf(state, number) {
-  if (state.pr?.number === Number(number)) return state.pr;
-  return findIssue(state, number) ?? notFound();
+  return findPr(state, number) ?? findIssue(state, number) ?? notFound();
 }
 
 const restComment = (comment) => ({ id: comment.id, user: { login: comment.author }, body: comment.body, created_at: comment.createdAt, updated_at: comment.createdAt });
@@ -103,20 +104,20 @@ function addComment({ ctx, fields, params }) {
   });
 }
 
-function addReviewComment({ ctx, fields }) {
+function addReviewComment({ ctx, fields, params }) {
   return ctx.store.update((state) => {
     const comment = {
       id: nextId(state), author: state.viewer, body: String(fields.body ?? ''), createdAt: new Date().toISOString(),
       path: fields.path, line: fields.line, commitId: fields.commit_id, inReplyTo: fields.in_reply_to,
     };
-    state.pr.reviewComments.push(comment);
+    prOf(state, params[0]).reviewComments.push(comment);
     return restReviewComment(comment);
   });
 }
 
 function findComment(state, kind, id) {
-  const commentLists = [state.pr, ...state.issues].filter(Boolean).map((item) => item.comments);
-  const lists = kind === 'comments' ? commentLists : [state.pr.reviewComments];
+  const commentLists = [...state.prs, ...state.issues].map((item) => item.comments);
+  const lists = kind === 'comments' ? commentLists : state.prs.map((pr) => pr.reviewComments);
   const list = lists.find((items) => items.some((item) => item.id === Number(id))) ?? notFound();
   return { list, comment: list.find((item) => item.id === Number(id)) };
 }

@@ -29,6 +29,7 @@ export function initialSliceState(sliceCase) {
     requiresApproval: false,
     labels: ['ready-for-agent'],
     checks: [],
+    prs: [],
     issues: [{
       number: sliceCase.spec.number,
       title: sliceCase.spec.title,

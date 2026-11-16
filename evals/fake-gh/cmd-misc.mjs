@@ -63,7 +63,7 @@ function runsOf(state) {
   const failed = state.checks.some((check) => check.state === 'fail');
   const pending = state.checks.some((check) => check.state === 'pending');
   return [{
-    databaseId: 1, name: 'CI', workflowName: 'CI', headBranch: state.pr.headRefName, event: 'push',
+    databaseId: 1, name: 'CI', workflowName: 'CI', headBranch: state.prs[0]?.headRefName ?? state.defaultBranch, event: 'push',
     status: pending ? 'in_progress' : 'completed', conclusion: pending ? '' : failed ? 'failure' : 'success',
     url: `${url(state, 'actions/runs', 1)}`,
   }];

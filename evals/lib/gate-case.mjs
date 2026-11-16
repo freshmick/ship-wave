@@ -42,7 +42,7 @@ export function initialGhState(gateCase, values) {
     labels: ['ready-for-agent'],
     checks: gateCase.checks,
     checksAfterRerun: gateCase.checksAfterRerun,
-    pr: {
+    prs: [{
       number: values.pr,
       closes: values.issue,
       title: gateCase.pr.title,
@@ -58,7 +58,7 @@ export function initialGhState(gateCase, values) {
       reviewComments: seeded(seed.reviewComments),
       resolvedThreads: [],
       createdAt: CREATED_AT,
-    },
+    }],
     issues: [{
       number: values.issue,
       title: gateCase.issue.title,

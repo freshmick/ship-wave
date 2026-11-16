@@ -31,7 +31,7 @@ function writeState(overrides) {
   const comment = { comments: [], createdAt: '2026-11-02T09:00:00Z', author: 'sam-owner', state: 'OPEN', labels: [] };
   writeFileSync(env.FAKE_GH_STATE, JSON.stringify({
     repo: 'acme/app', defaultBranch: 'main', viewer: 'sam-owner', requiresApproval: false, labels: [], checks: [{ name: 'build', state: 'pass' }],
-    pr: { ...comment, number: 7, closes: 6, title: 'Second', body: 'Fixes #6', isDraft: false, baseRefName: 'main', headRefName: 'change', reviews: [], reviewComments: [], resolvedThreads: [] },
+    prs: [{ ...comment, number: 7, closes: 6, title: 'Second', body: 'Fixes #6', isDraft: false, baseRefName: 'main', headRefName: 'change', reviews: [], reviewComments: [], resolvedThreads: [] }],
     issues: [{ ...comment, number: 6, title: 'Do the second thing', body: 'Outcome' }],
     ...overrides,
   }));
@@ -64,13 +64,13 @@ test('pr checks exits 0 when green, 1 when red, 8 while running', async () => {
 test('labels added and removed are remembered', async () => {
   await gh('pr', 'edit', '7', '--add-label', 'needs-you');
   await gh('pr', 'edit', '7', '--add-label', 'ready-to-merge', '--remove-label', 'needs-you');
-  assert.deepEqual(state().pr.labels, ['ready-to-merge']);
+  assert.deepEqual(state().prs[0].labels, ['ready-to-merge']);
 });
 
 test('merge moves main to the PR head and closes the issue', async () => {
   const { exit } = await gh('pr', 'merge', '7', '--squash', '--delete-branch');
   assert.equal(exit, 0);
-  assert.equal(state().pr.state, 'MERGED');
+  assert.equal(state().prs[0].state, 'MERGED');
   assert.equal(state().issues[0].state, 'CLOSED');
   assert.equal(git(env.FAKE_GH_ORIGIN, ['log', '-1', '--format=%s', 'main']), 'second');
 });
@@ -80,7 +80,7 @@ test('merge is refused when the repo needs an approval, and says so', async () =
   const { exit, stderr } = await gh('pr', 'merge', '7', '--squash');
   assert.equal(exit, 1);
   assert.match(stderr, /base branch policy prohibits the merge/);
-  assert.equal(state().pr.state, 'OPEN');
+  assert.equal(state().prs[0].state, 'OPEN');
 });
 
 test('a review comment becomes a thread that can be resolved', async () => {
@@ -89,7 +89,7 @@ test('a review comment becomes a thread that can be resolved', async () => {
   const [thread] = listed.data.repository.pullRequest.reviewThreads.nodes;
   assert.equal(thread.isResolved, false);
   await gh('api', 'graphql', '-f', `query=mutation{resolveReviewThread(input:{threadId:"${thread.id}"}){thread{isResolved}}}`);
-  assert.deepEqual(state().pr.resolvedThreads, [thread.comments.nodes[0].databaseId]);
+  assert.deepEqual(state().prs[0].resolvedThreads, [thread.comments.nodes[0].databaseId]);
 });
 
 test('a call the fake does not cover fails and is logged as unhandled', async () => {
@@ -118,23 +118,46 @@ test('a created issue gets the next number and can be linked as a sub-issue and 
 });
 
 test('a remote with issues only answers issue commands without a repository behind it', async () => {
-  writeState({ pr: undefined });
+  writeState({ prs: [] });
   delete env.FAKE_GH_ORIGIN;
   assert.equal((await gh('issue', 'view', '6', '--json', 'title', '-q', '.title')).stdout, 'Do the second thing\n');
   assert.equal((await gh('pr', 'view', '7')).exit, 1);
 });
 
 test('pr create makes the one pull request from a pushed branch and reads the issue it closes', async () => {
-  writeState({ pr: undefined });
+  writeState({ prs: [] });
   const { stdout } = await gh('pr', 'create', '--draft', '--head', 'change', '--title', 'Second', '--body', 'Fixes #6\n\nDoes it.');
   assert.match(stdout, /pull\/7\n$/);
-  assert.deepEqual([state().pr.isDraft, state().pr.closes, state().pr.headRefName], [true, 6, 'change']);
+  const [created] = state().prs;
+  assert.deepEqual([created.isDraft, created.closes, created.headRefName], [true, 6, 'change']);
   assert.equal((await gh('pr', 'create', '--head', 'change', '--title', 'Again', '--body', 'x')).exit, 1);
 });
 
 test('pr create refuses a branch that was not pushed', async () => {
-  writeState({ pr: undefined });
+  writeState({ prs: [] });
   const { exit, stderr } = await gh('pr', 'create', '--head', 'not-pushed', '--title', 'T', '--body', 'B');
   assert.equal(exit, 1);
   assert.match(stderr, /must first push/);
+});
+
+test('two pull requests: each command works on the one it names, and the second merge is a squash onto the moved base', async () => {
+  const work = join(dir, 'work');
+  git(work, ['checkout', '--quiet', 'main']);
+  git(work, ['checkout', '--quiet', '-b', 'other']);
+  writeFileSync(join(work, 'b.txt'), 'other\n');
+  git(work, ['add', '--all']);
+  git(work, ['commit', '--quiet', '-m', 'other file']);
+  git(work, ['push', '--quiet', join(dir, 'origin.git'), 'other']);
+
+  await gh('pr', 'create', '--head', 'other', '--title', 'Other file', '--body', 'Part of #6');
+  await gh('pr', 'edit', '8', '--add-label', 'ready-to-merge');
+  assert.deepEqual(state().prs.map((pr) => pr.labels), [[], ['ready-to-merge']]);
+  assert.equal((await gh('pr', 'view', 'other', '--json', 'number', '-q', '.number')).stdout, '8\n');
+
+  assert.equal((await gh('pr', 'merge', '7', '--squash')).exit, 0);
+  assert.equal((await gh('pr', 'view', '8', '--json', 'mergeStateStatus', '-q', '.mergeStateStatus')).stdout, 'BEHIND\n');
+  assert.equal((await gh('pr', 'merge', '8', '--squash')).exit, 0);
+  const files = git(env.FAKE_GH_ORIGIN, ['ls-tree', '--name-only', 'main']).split('\n');
+  assert.deepEqual(files, ['a.txt', 'b.txt']);
+  assert.equal(git(env.FAKE_GH_ORIGIN, ['show', 'main:a.txt']), 'one\ntwo');
 });

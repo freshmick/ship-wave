@@ -36,6 +36,15 @@ export function openGit(gitDir) {
       });
     },
     isBehind: (base, head) => git('merge-base', base, head) !== git('rev-parse', base),
+    // A commit on top of `base` holding the merge of `head`, or null on a conflict.
+    squash(base, head, message) {
+      try {
+        const tree = git('merge-tree', '--write-tree', base, head).split('\n')[0];
+        return git('-c', 'user.name=fake-gh', '-c', 'user.email=fake-gh@example.com', 'commit-tree', tree, '-p', base, '-m', message);
+      } catch {
+        return null;
+      }
+    },
     moveBranch: (branch, sha) => git('update-ref', `refs/heads/${branch}`, sha),
     deleteBranch: (branch) => git('update-ref', '-d', `refs/heads/${branch}`),
   };

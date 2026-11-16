@@ -7,12 +7,15 @@ const THREAD_PREFIX = 'PRRT_';
 export function graphql(fields, ctx) {
   const query = String(fields.query ?? '');
   if (query.includes('resolveReviewThread')) return resolveThread(query, fields, ctx);
-  if (query.includes('reviewThreads')) return listThreads(ctx.store.read());
+  if (query.includes('reviewThreads')) return listThreads(ctx.store.read(), query, fields);
   throw new Unsupported('fake gh serves only the reviewThreads query and the resolveReviewThread mutation');
 }
 
-function listThreads(state) {
-  const pr = state.pr;
+// The PR is the one the query or its variables number; with one PR, that one.
+function listThreads(state, query, fields) {
+  const wanted = [/pullRequest\(\s*number:\s*(\d+)/.exec(query)?.[1], fields.number, fields.pr, fields.prNumber].map(Number).find(Boolean);
+  const pr = state.prs.find((item) => item.number === wanted) ?? (state.prs.length === 1 ? state.prs[0] : undefined);
+  if (!pr) throw new Unsupported('reviewThreads: could not tell which pull request is meant');
   const node = (comment) => ({
     id: `PRRC_${comment.id}`, databaseId: comment.id, author: { login: comment.author },
     body: comment.body, path: comment.path, line: comment.line, createdAt: comment.createdAt,
@@ -38,8 +41,10 @@ function resolveThread(query, fields, ctx) {
   if (!id) throw new Unsupported('resolveReviewThread: no thread id found');
   ctx.store.update((state) => {
     const unresolve = query.includes('unresolveReviewThread');
-    const others = state.pr.resolvedThreads.filter((item) => item !== Number(id));
-    state.pr.resolvedThreads = unresolve ? others : [...others, Number(id)];
+    const pr = state.prs.find((item) => item.reviewComments.some((comment) => comment.id === Number(id)));
+    if (!pr) throw new Unsupported(`resolveReviewThread: no thread ${id}`);
+    const others = pr.resolvedThreads.filter((item) => item !== Number(id));
+    pr.resolvedThreads = unresolve ? others : [...others, Number(id)];
   });
   return { data: { resolveReviewThread: { thread: { id: `${THREAD_PREFIX}${id}`, isResolved: true } } } };
 }

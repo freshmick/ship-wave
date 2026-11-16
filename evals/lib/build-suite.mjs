@@ -39,7 +39,7 @@ export async function runBuildCase({ config, buildCase, dir }) {
 const CHECKS = { pr: checkPullRequest, 'conflict-reported': checkConflict, 'cut-reported': checkCut };
 
 function checkPullRequest({ buildCase, state, checkout }) {
-  const pr = state.pr;
+  const [pr] = state.prs;
   if (!pr) {
     return buildCase.rows.map((row) => ({ row, expected: 'a pull request', failures: ['no pull request was opened'] }));
   }
@@ -83,7 +83,7 @@ async function checkConflict({ config, buildCase, state, checkout, message }) {
   return [{ row: 7, expected: 'conflict reported, test untouched', failures: [
     ...edits,
     ...(judged.reportsConflict ? [] : ['the report does not say an existing test contradicts the issue']),
-    ...(state.pr && !state.pr.isDraft ? ['opened a non-draft PR'] : []),
+    ...(state.prs.some((pr) => !pr.isDraft) ? ['opened a non-draft PR'] : []),
   ] }];
 }
 
@@ -94,7 +94,7 @@ async function checkCut({ config, state, message }) {
     material: message,
   });
   return [{ row: 8, expected: 'no PR, cut reported', failures: [
-    ...(state.pr ? [`opened PR #${state.pr.number} for an issue that holds two outcomes`] : []),
+    ...state.prs.map((pr) => `opened PR #${pr.number} for an issue that holds two outcomes`),
     ...(judged.reportsCut ? [] : ['the report does not say where the issue should be cut']),
   ] }];
 }
