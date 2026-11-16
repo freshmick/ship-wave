@@ -1,0 +1,10 @@
+{
+  "name": "tripsheet",
+  "version": "0.3.0",
+  "description": "Turns a courier's trip log into a daily report.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test"
+  }
+}

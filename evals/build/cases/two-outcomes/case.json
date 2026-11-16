@@ -1,0 +1,6 @@
+{
+  "about": "One issue that holds two outcomes, a CSV format and a date filter, each of which could merge on its own. The implementer must open no PR and say where the cut falls.",
+  "issue": { "number": 41, "title": "Report as CSV and since a date" },
+  "expect": "cut-reported",
+  "rows": [8]
+}
