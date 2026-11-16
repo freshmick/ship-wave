@@ -67,12 +67,13 @@ test('labels added and removed are remembered', async () => {
   assert.deepEqual(state().prs[0].labels, ['ready-to-merge']);
 });
 
-test('merge moves main to the PR head and closes the issue', async () => {
+test('a squash merge puts one commit on main and closes the issue', async () => {
   const { exit } = await gh('pr', 'merge', '7', '--squash', '--delete-branch');
   assert.equal(exit, 0);
   assert.equal(state().prs[0].state, 'MERGED');
   assert.equal(state().issues[0].state, 'CLOSED');
-  assert.equal(git(env.FAKE_GH_ORIGIN, ['log', '-1', '--format=%s', 'main']), 'second');
+  assert.equal(git(env.FAKE_GH_ORIGIN, ['log', '-1', '--format=%s', 'main']), 'Second (#7)');
+  assert.equal(git(env.FAKE_GH_ORIGIN, ['show', 'main:a.txt']), 'one\ntwo');
 });
 
 test('merge is refused when the repo needs an approval, and says so', async () => {
@@ -88,6 +89,8 @@ test('a review comment becomes a thread that can be resolved', async () => {
   const listed = JSON.parse((await gh('api', 'graphql', '-f', 'query=query { reviewThreads }')).stdout);
   const [thread] = listed.data.repository.pullRequest.reviewThreads.nodes;
   assert.equal(thread.isResolved, false);
+  const commentId = thread.comments.nodes[0].databaseId;
+  assert.equal((await gh('api', `repos/{owner}/{repo}/pulls/comments/${commentId}`, '-q', '.body')).stdout, 'why?\n');
   await gh('api', 'graphql', '-f', `query=mutation{resolveReviewThread(input:{threadId:"${thread.id}"}){thread{isResolved}}}`);
   assert.deepEqual(state().prs[0].resolvedThreads, [thread.comments.nodes[0].databaseId]);
 });

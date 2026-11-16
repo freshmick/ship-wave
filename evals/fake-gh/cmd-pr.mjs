@@ -145,8 +145,9 @@ function merge(args, ctx) {
     }
     const base = `refs/heads/${pr.baseRefName}`;
     const head = `refs/heads/${pr.headRefName}`;
-    // Up to date with the base: the base moves to the head. Behind it: a squash commit.
-    const merged = ctx.git.isBehind(base, head) ? ctx.git.squash(base, head, `${pr.title} (#${pr.number})`) : ctx.git.sha(head);
+    // --squash, or a branch behind its base: one new commit on the base. Else the base moves to the head.
+    const squash = args.has('squash') || ctx.git.isBehind(base, head);
+    const merged = squash ? ctx.git.squash(base, head, `${pr.title} (#${pr.number})`) : ctx.git.sha(head);
     if (!merged) throw new GhFailure(`Pull request ${state.repo}#${pr.number} is not mergeable: the merge commit cannot be cleanly created.`);
     pr.mergedBaseSha = ctx.git.sha(base);
     pr.mergedHeadSha = ctx.git.sha(head);
