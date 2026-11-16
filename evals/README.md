@@ -78,6 +78,25 @@ node evals/run.mjs flow
 
 The case under `flow/cases/` is a small spec for the `build/fixture-repo/` project. The harness plays the slicing conversation, then starts `ship-wave` in a fresh session over the issues that were published. When everything has merged it runs the default branch's own tests and its hidden test of the spec's criteria. This is the longest and dearest run: one pass does the work of a slicing run plus a building run and a gate run for every slice.
 
+## Reviewer catch rate
+
+Not a pass/fail eval. It measures how often a fresh-context reviewer, briefed as `pr-gate` briefs its own, catches one planted bug as the diff around it grows. The bug is always the same; the padding is real Umami history.
+
+```sh
+node evals/measure-catch-rate.mjs --trials 3
+```
+
+Result on 16 November 2026, on Opus, three reviewers per size:
+
+| Hand-written lines in the diff | Files | Caught |
+|---|---|---|
+| 24 | 2 | 3 of 3 |
+| 239 | 8 | 3 of 3 |
+| 1,090 | 46 | 3 of 3 |
+| 2,153 | 63 | 3 of 3 |
+
+Read it with its limits: the reviewer was given the acceptance criteria the bug breaks, which is what the gate does but also points at the bug; the padding is unrelated work, not one large feature; and three trials per size show a cliff, not a rate. It supports having no size limit on a slice. It does not show that size never matters.
+
 ## Settings
 
 All optional, read from the environment.
