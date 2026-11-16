@@ -49,7 +49,11 @@ export function buildFixture({ config, sourceRepo, gateCase, dir }) {
 function writeRules(config, gateCase, repo) {
   const base = join(config.evalsDir, 'fixture-base');
   const checks = gateCase.localChecks === 'fail' ? 'checks-fail.sh' : 'checks-pass.sh';
-  const riskPaths = readFileSync(join(base, 'risk-paths.md'), 'utf8').replace('{{lane}}', gateCase.lane);
+  // A case may list paths whose change needs a decision record.
+  const needsAdr = (gateCase.needsAdr ?? []).map((glob) => `- \`${glob}\``).join('\n');
+  const riskPaths = readFileSync(join(base, 'risk-paths.md'), 'utf8')
+    .replace('{{lane}}', gateCase.lane)
+    .replace('## docs and tests', needsAdr ? `## needs-adr\n${needsAdr}\n\n## docs and tests` : '## docs and tests');
 
   copyFileSync(join(base, 'CLAUDE.md'), join(repo, 'CLAUDE.md'));
   copyFileSync(join(base, checks), join(repo, 'checks.sh'));

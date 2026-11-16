@@ -1,0 +1,75 @@
+{
+  "row": 24,
+  "about": "umami-software/umami#4553 as it was merged, with one test that cannot fail. The gate's finding has been answered with a reason three times and is still disputed.",
+  "lane": "live",
+  "base": "21eab63b8179799c7b3db124dab16da1d10e8e00",
+  "pr": {
+    "title": "Keep Redis-backed sessions alive while they are used",
+    "branch": "session-keep-alive"
+  },
+  "issue": {
+    "title": "Active users are signed out after an hour when Redis is enabled"
+  },
+  "checks": [
+    {
+      "name": "build",
+      "state": "pass"
+    }
+  ],
+  "localChecks": "pass",
+  "seed": {
+    "comments": [
+      {
+        "author": "sam-owner",
+        "bodyFile": "gate-comment.md"
+      }
+    ],
+    "reviewComments": [
+      {
+        "author": "sam-owner",
+        "path": "src/lib/auth.test.ts",
+        "line": 336,
+        "bodyFile": "thread-1-gate.md"
+      },
+      {
+        "author": "build-agent",
+        "path": "src/lib/auth.test.ts",
+        "line": 336,
+        "bodyFile": "thread-2-implementer.md",
+        "replyTo": 0
+      },
+      {
+        "author": "sam-owner",
+        "path": "src/lib/auth.test.ts",
+        "line": 336,
+        "bodyFile": "thread-3-gate.md",
+        "replyTo": 0
+      },
+      {
+        "author": "build-agent",
+        "path": "src/lib/auth.test.ts",
+        "line": 336,
+        "bodyFile": "thread-4-implementer.md",
+        "replyTo": 0
+      },
+      {
+        "author": "sam-owner",
+        "path": "src/lib/auth.test.ts",
+        "line": 336,
+        "bodyFile": "thread-5-gate.md",
+        "replyTo": 0
+      },
+      {
+        "author": "build-agent",
+        "path": "src/lib/auth.test.ts",
+        "line": 336,
+        "bodyFile": "thread-6-implementer.md",
+        "replyTo": 0
+      }
+    ]
+  },
+  "expected": {
+    "outcome": "needs-you",
+    "merged": false
+  }
+}

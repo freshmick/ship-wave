@@ -32,7 +32,14 @@ export function initialGhState(gateCase, values) {
   const read = (file) => fill(readFileSync(join(gateCase.dir, file), 'utf8'), values);
   const seed = gateCase.seed ?? {};
   const seeded = (items = []) =>
-    items.map((item, index) => ({ ...item, id: 500 + index, body: item.bodyFile ? read(item.bodyFile) : item.body, createdAt: CREATED_AT }));
+    items.map((item, index) => ({
+      ...item,
+      id: 500 + index,
+      body: item.bodyFile ? read(item.bodyFile) : item.body,
+      // `replyTo` is the position of the seeded comment this one answers.
+      inReplyTo: item.replyTo === undefined ? undefined : 500 + item.replyTo,
+      createdAt: CREATED_AT,
+    }));
   const viewer = 'sam-owner';
   return {
     repo: 'acme-analytics/umami',

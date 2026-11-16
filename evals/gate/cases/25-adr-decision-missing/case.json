@@ -1,0 +1,27 @@
+{
+  "row": 25,
+  "about": "The column drop from rows 5 and 18 with the repo set to mvp, so no consent is needed, and prisma/** listed under needs-adr. The issue asks for a field to leave the API; dropping the column was the implementer's decision and no ADR records it.",
+  "lane": "mvp",
+  "base": "dc2b51d5714eca4dae8bc2897d84cb10a17ea10f",
+  "pr": {
+    "title": "Remove logoUrl from users",
+    "branch": "user-without-logo-url"
+  },
+  "issue": {
+    "title": "Users returned by the API carry a logoUrl nothing uses"
+  },
+  "checks": [
+    {
+      "name": "build",
+      "state": "pass"
+    }
+  ],
+  "localChecks": "pass",
+  "needsAdr": [
+    "prisma/**"
+  ],
+  "expected": {
+    "outcome": "needs-you",
+    "merged": false
+  }
+}

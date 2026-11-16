@@ -31,7 +31,7 @@ Every run is a real Claude Code session and costs tokens. The report lists pass 
 | `issue.md` | The issue the PR closes |
 | `pr-body.md` | The PR description |
 
-In a case's text, `{{pr}}` and `{{issue}}` become the numbers the run assigns, and `{{firstSha}}` the sha of the PR's first commit. Optional keys in `case.json`: `seed` (labels, comments and review threads already on the PR), `laterCommit` (a second commit the gate has not seen), `prompt` (default `/pr-gate {{pr}}`), `requiresApproval` (the repo needs an approval the agent can't give).
+In a case's text, `{{pr}}` and `{{issue}}` become the numbers the run assigns, and `{{firstSha}}` the sha of the PR's first commit. Optional keys in `case.json`: `seed` (labels, comments and review threads already on the PR), `laterCommit` (a second commit the gate has not seen), `prompt` (default `/pr-gate {{pr}}`), `requiresApproval` (the repo needs an approval the agent can't give), `needsAdr` (globs to list under `needs-adr` in the fixture's risk-paths file).
 
 ## Slicing
 

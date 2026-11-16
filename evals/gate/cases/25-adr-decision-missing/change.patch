@@ -1,0 +1,20 @@
+diff --git a/prisma/migrations/28_drop_user_logo_url/migration.sql b/prisma/migrations/28_drop_user_logo_url/migration.sql
+new file mode 100644
+index 000000000..c2a2c8437
+--- /dev/null
++++ b/prisma/migrations/28_drop_user_logo_url/migration.sql
+@@ -0,0 +1,2 @@
++-- AlterTable
++ALTER TABLE "user" DROP COLUMN "logo_url";
+diff --git a/prisma/schema.prisma b/prisma/schema.prisma
+index ba94dbcea..ff196186d 100644
+--- a/prisma/schema.prisma
++++ b/prisma/schema.prisma
+@@ -14,7 +14,6 @@ model User {
+   username          String    @unique @db.VarChar(255)
+   password          String    @db.VarChar(60)
+   role              String    @map("role") @db.VarChar(50)
+-  logoUrl           String?   @map("logo_url") @db.VarChar(2183)
+   displayName       String?   @map("display_name") @db.VarChar(255)
+   twoFactorRequired Boolean   @default(false) @map("two_factor_required")
+   createdAt         DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)

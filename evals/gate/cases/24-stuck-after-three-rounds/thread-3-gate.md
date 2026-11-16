@@ -1,0 +1,1 @@
+It passes for the wrong reason. I changed the guard to `if (key.ttl)` in a worktree and this test stayed green, so it would not catch the refresh moving above the password check. Every session created from now on has a `ttl`; that is the input the criterion is about.

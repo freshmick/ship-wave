@@ -1,0 +1,91 @@
+diff --git a/src/app/api/teams/join/route.ts b/src/app/api/teams/join/route.ts
+index b74f4fb23..6e07e6bb3 100644
+--- a/src/app/api/teams/join/route.ts
++++ b/src/app/api/teams/join/route.ts
+@@ -2,6 +2,7 @@ import { z } from 'zod';
+ import { ROLES } from '@/lib/constants';
+ import { parseRequest } from '@/lib/request';
+ import { badRequest, json, notFound } from '@/lib/response';
++import { notifyTeamJoin } from '@/lib/team-notify';
+ import { createTeamUser, findTeam, getTeamUser } from '@/queries/prisma';
+ 
+ export async function POST(request: Request) {
+@@ -36,5 +37,7 @@ export async function POST(request: Request) {
+ 
+   const user = await createTeamUser(auth.user.id, team.id, ROLES.teamMember);
+ 
++  await notifyTeamJoin(team.name, auth.user.username);
++
+   return json(user);
+ }
+diff --git a/src/lib/team-notify.test.ts b/src/lib/team-notify.test.ts
+new file mode 100644
+index 000000000..37fcffbea
+--- /dev/null
++++ b/src/lib/team-notify.test.ts
+@@ -0,0 +1,40 @@
++import { afterEach, beforeEach, expect, test, vi } from 'vitest';
++import { notifyTeamJoin } from './team-notify';
++
++const fetchMock = vi.fn();
++
++beforeEach(() => {
++  fetchMock.mockReset();
++  fetchMock.mockResolvedValue({ ok: true });
++  vi.stubGlobal('fetch', fetchMock);
++});
++
++afterEach(() => {
++  vi.unstubAllGlobals();
++  delete process.env.TEAM_JOIN_WEBHOOK_URL;
++});
++
++test('posts who joined to the configured webhook', async () => {
++  process.env.TEAM_JOIN_WEBHOOK_URL = 'https://chat.example.com/hooks/abc';
++
++  await notifyTeamJoin('Growth', 'dana');
++
++  expect(fetchMock).toHaveBeenCalledWith('https://chat.example.com/hooks/abc', {
++    method: 'POST',
++    headers: { 'content-type': 'application/json' },
++    body: JSON.stringify({ text: 'dana joined the team Growth.' }),
++  });
++});
++
++test('does nothing when no webhook is configured', async () => {
++  await notifyTeamJoin('Growth', 'dana');
++
++  expect(fetchMock).not.toHaveBeenCalled();
++});
++
++test('a failed post does not throw', async () => {
++  process.env.TEAM_JOIN_WEBHOOK_URL = 'https://chat.example.com/hooks/abc';
++  fetchMock.mockRejectedValue(new Error('network down'));
++
++  await expect(notifyTeamJoin('Growth', 'dana')).resolves.toBeUndefined();
++});
+diff --git a/src/lib/team-notify.ts b/src/lib/team-notify.ts
+new file mode 100644
+index 000000000..10fd4099f
+--- /dev/null
++++ b/src/lib/team-notify.ts
+@@ -0,0 +1,19 @@
++// Tells the team's chat channel that someone joined with the access code.
++// Does nothing when no webhook is configured. A failed post never fails the join.
++export async function notifyTeamJoin(teamName: string, username: string) {
++  const url = process.env.TEAM_JOIN_WEBHOOK_URL;
++
++  if (!url) {
++    return;
++  }
++
++  try {
++    await fetch(url, {
++      method: 'POST',
++      headers: { 'content-type': 'application/json' },
++      body: JSON.stringify({ text: `${username} joined the team ${teamName}.` }),
++    });
++  } catch {
++    // The join has already succeeded.
++  }
++}

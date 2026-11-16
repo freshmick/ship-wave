@@ -1,0 +1,1 @@
+Not changing it. Criterion 3 says a session rejected by a password change is not refreshed, and the code does that: the fingerprint check sets `user` to null before the refresh, which is inside `if (user && key.ttl)`. The test asserts `expire` is not called, and it passes.

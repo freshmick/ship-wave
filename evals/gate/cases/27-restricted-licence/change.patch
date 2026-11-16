@@ -1,0 +1,109 @@
+diff --git a/package.json b/package.json
+index d2cbac2b9..653bb3b2a 100644
+--- a/package.json
++++ b/package.json
+@@ -98,6 +98,7 @@
+     "dotenv": "^18.0.6",
+     "esbuild": "^0.28.2",
+     "flags": "^4.3.1",
++    "highcharts": "^13.1.1",
+     "immer": "^11.1.21",
+     "ipaddr.js": "^2.5.0",
+     "is-ci": "^4.1.0",
+diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
+index 09bf91925..d25deab01 100644
+--- a/pnpm-lock.yaml
++++ b/pnpm-lock.yaml
+@@ -108,6 +108,9 @@ importers:
+       flags:
+         specifier: ^4.3.1
+         version: 4.3.1(next@16.4.2(@babel/core@7.29.6(supports-color@10.2.2))(@playwright/test@1.64.0)(@types/node@26.6.4)(babel-plugin-react-compiler@19.1.0-rc.2)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
++      highcharts:
++        specifier: ^13.1.1
++        version: 13.1.1
+       immer:
+         specifier: ^11.1.21
+         version: 11.1.21
+@@ -3782,6 +3785,9 @@ packages:
+   immediate@3.0.6:
+     resolution: {integrity: sha512-XXOFtyqDjNDAQxVfYxuF7g9Il/IbWmmlQg2MYKOH8ExIT1qg6xc4zyS3HaEEATgs1btfzxq15ciUiY7gjSXRGQ==}
+ 
++  highcharts@13.1.1:
++    resolution: {integrity: sha512-k/smhxCgaqHDsuy9ZCWs8FJNTPrbzc8BmMA4M/8f9JMwv9HgmNZjulyWwZ9q9ly6AzHpskL9mhlW8vgsSqnstg==}
++
+   immer@11.1.21:
+     resolution: {integrity: sha512-bZSadeCPGdaY5/qRLgr6mDSH1ra21rD3rqpiWk7+QTr4ayYPTE9qZYdLh/NdPhMe0wSrTvHD/Lk8q5EwhUs0aw==}
+ 
+@@ -9147,6 +9153,8 @@ snapshots:
+ 
+   immediate@3.0.6: {}
+ 
++  highcharts@13.1.1: {}
++
+   immer@11.1.21: {}
+ 
+   import-fresh@3.3.1:
+diff --git a/src/lib/revenue-trend.test.ts b/src/lib/revenue-trend.test.ts
+new file mode 100644
+index 000000000..88ba1b76e
+--- /dev/null
++++ b/src/lib/revenue-trend.test.ts
+@@ -0,0 +1,27 @@
++import { expect, test } from 'vitest';
++import { buildRevenueTrendOptions } from './revenue-trend';
++
++test('builds one line of revenue per day, oldest first', () => {
++  const options = buildRevenueTrendOptions(
++    [
++      { date: '2026-11-03', amount: 31 },
++      { date: '2026-11-02', amount: 18.5 },
++    ],
++    'USD',
++  );
++
++  expect(options.series).toEqual([
++    {
++      type: 'line',
++      name: 'USD',
++      data: [
++        [Date.parse('2026-11-02'), 18.5],
++        [Date.parse('2026-11-03'), 31],
++      ],
++    },
++  ]);
++});
++
++test('no points gives an empty line', () => {
++  expect(buildRevenueTrendOptions([], 'USD').series).toEqual([{ type: 'line', name: 'USD', data: [] }]);
++});
+diff --git a/src/lib/revenue-trend.ts b/src/lib/revenue-trend.ts
+new file mode 100644
+index 000000000..8e69a3af3
+--- /dev/null
++++ b/src/lib/revenue-trend.ts
+@@ -0,0 +1,25 @@
++import type { Options } from 'highcharts';
++
++export interface RevenuePoint {
++  date: string;
++  amount: number;
++}
++
++// Chart options for the revenue trend: one line of revenue per day, oldest first.
++export function buildRevenueTrendOptions(points: RevenuePoint[], currency: string): Options {
++  const sorted = [...points].sort((a, b) => a.date.localeCompare(b.date));
++
++  return {
++    chart: { type: 'line' },
++    title: { text: undefined },
++    xAxis: { type: 'datetime' },
++    yAxis: { title: { text: currency } },
++    series: [
++      {
++        type: 'line',
++        name: currency,
++        data: sorted.map(point => [Date.parse(point.date), point.amount]),
++      },
++    ],
++  };
++}
