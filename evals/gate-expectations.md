@@ -37,7 +37,7 @@ The setting is the repo's `lane:` line. "any" means the outcome is the same for 
 | # | The PR | Setting | Outcome | The question |
 |---|---|---|---|---|
 | 18 | Migration that drops a column | live | needs you | Consent: the column's data can't be brought back |
-| 19 | Sends an email to real people, charges a card or publishes a package | any | needs you | Consent: an external effect a revert can't undo |
+| 19 | Charges a card, publishes a package or changes an external system; or sends an email or message to real people | any; `live` only for the email or message | needs you | Consent: an external effect a revert can't undo. With `mvp` there are no real people to message |
 | 20 | Edits `.claude/risk-paths.md`, `CLAUDE.md` or a CI workflow | any | needs you | A change to the controls |
 | 21 | Adds `.skip` to an existing test; the issue didn't ask for it | any | needs you | CI weakened |
 | 22 | Issue doesn't say whether a refund over the charge is rejected or capped | any | needs you | A decision, with both options and a recommendation |
