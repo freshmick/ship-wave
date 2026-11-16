@@ -23,7 +23,7 @@ Do this before cutting anything. Go through the spec against pr-gate's step 5 an
 - **Consents.** Every one-way door under the repo's setting, every change to the controls, every new dependency whose licence restricts use.
 - **What can't be tested.** An external system with no sandbox, a result nobody can check before real use.
 
-Settle yourself what the code, the spec or an ADR already answers, and every technical choice. Ask the rest in one batch: numbered, each with its options and your recommendation, each answerable in a sentence. Don't cut until they are answered. Then write the answers on the spec as one comment that starts `[Agent comment]` and quotes the user's words, so they outlive this conversation.
+Settle yourself what the code, the spec or an ADR already answers, and every technical choice. One exception: who can see or do a new thing is always asked, with the rule similar code follows as your recommendation, because an access rule is the user's to set. Ask the rest in one batch: numbered, each with its options and your recommendation, each answerable in a sentence. Don't cut until they are answered. Then write the answers on the spec as one comment that starts `[Agent comment]` and quotes the user's words, so they outlive this conversation.
 
 When re-cutting one issue, ask only if the new cut raises a question the spec's answers don't cover.
 
@@ -32,7 +32,7 @@ A slice is one outcome a user or a test can see, proved by one test, that a reve
 
 - **One outcome each.** If you need "and" to say what it delivers, cut again. Size is not the test.
 - **At most one thing for the user.** A part that carries a consent, or a decision the user chose to leave open, is its own slice, so the rest doesn't wait on it.
-- **Every criterion in the spec lands in exactly one slice**, or under "out of scope" in the report.
+- **Every criterion in the spec lands in a slice**, or under "out of scope" in the report. None is dropped and no behaviour is built twice; a criterion that holds two outcomes is split, each part in one slice.
 - **Empty repo:** the first slice is a walking skeleton, the smallest code that builds, runs one path end to end and passes CI. Everything else is blocked by it.
 - **Prefactoring first**, as its own slice: make the change easy, then make the easy change.
 - **A wide mechanical change** (a rename or retype that breaks call sites everywhere) can't be a vertical slice. Sequence it as expand, migrate, contract: add the new form beside the old; move the call sites in batches, each its own slice blocked by the expand; delete the old form in a slice blocked by every batch.
@@ -42,7 +42,7 @@ A slice is one outcome a user or a test can see, proved by one test, that a reve
 A numbered list, one line per slice: title, the outcome, blocked by, door, and what the user settled for it. Ask one thing: is anything missing, wrong, or better merged or split? Publish when the user says go. When re-cutting one issue on ship-wave's behalf, publish without asking.
 
 ## 5. Publish
-One issue per slice, in dependency order so blockers can be linked by their real ids, each a sub-issue of the spec, with the tracker's native blocking links where it has them and the `ready-for-agent` label. Don't close or edit the spec, apart from the answers comment. When re-cutting, close the issue you replaced with a link to the new ones.
+One issue per slice, in dependency order so blockers can be linked by their real ids, each a sub-issue of the spec, with the tracker's native blocking links where it has them and the `ready-for-agent` label. A slice whose question the user has left open is published without that label, so no agent starts it, and the report names it. Don't close or edit the spec, apart from the answers comment. When re-cutting, close the issue you replaced with a link to the new ones.
 
 Every issue has all of these sections. `ship-wave` doesn't start an issue that lacks one.
 
