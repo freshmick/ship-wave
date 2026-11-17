@@ -1,6 +1,6 @@
 # Risk paths template
 
-A repo may keep its own list at `.claude/risk-paths.md`, written by hand or with the user by the `risk-paths` skill. It sets the repo setting and the paths that decide each PR's review depth. When a repo has none, the gate uses this template with `lane: live`: its generic globs work in any repo and the example globs match nothing.
+A repo may keep its own list at `.claude/risk-paths.md`, written by hand or with the user by the `risk-paths` skill. It sets the repo setting and the paths that decide each PR's review depth. When a repo has none, the gate uses this template with `lane: live`: its generic globs work in any repo. The example globs match nothing, so there the gate goes by what the code does: sign-in and permissions, where user data is stored, and what keeps one user's data from another are sensitive wherever they live.
 
 ```markdown
 # Risk paths (read by the pr-gate skill)
@@ -57,5 +57,3 @@ One glob per bullet, in backticks, gitignore style (`**` crosses directories). A
 - `**/*.test.*`
 - `**/*.spec.*`
 ```
-
-Generic fallback when a repo has no list: auth, storage, isolation, CI, container/deploy, dependency manifests and lockfiles, and agent rule files are sensitive. Docs-only and tests-only changes are docs and tests. Everything else is ordinary.

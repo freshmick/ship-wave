@@ -21,7 +21,7 @@ Input: `$ARGUMENTS` (a spec, or one issue to re-cut). The slicing rules build on
 Do this before cutting anything. Go through the spec against pr-gate's step 5 and list:
 - **Decisions.** Every place the spec is silent or contradicts itself on something a user would notice: empty and error states, limits, who can see or do what, what happens to existing data, the words on the screen.
 - **Consents.** Every one-way door under the repo's setting, every change to the controls, every new dependency whose licence restricts use. Something that stays off until its own new setting is switched on is not a one-way door: whoever switches it on decides, so say in the issue what switches it on. It is one when it runs as soon as it merges or rides on a setting already in use.
-- **What can't be tested.** An external system with no sandbox, a result nobody can check before real use, when a wrong result would do harm a revert can't take back (money moved, data lost or exposed, a message sent). When a revert would fix it, don't ask: say under the issue's proving test what no check can run.
+- **What can't be tested.** An external system with no sandbox, a result nobody can check before real use, when a wrong result would do harm a revert can't take back (money moved, data lost or exposed, a message sent). When a revert would fix it, or it stays off until its own new setting is switched on, don't ask: say under the issue's proving test what no check can run.
 
 Settle yourself what the code, the spec or an ADR already answers, and every technical choice. One exception: who can see or do a new thing is always asked, with the rule similar code follows as your recommendation, because an access rule is the user's to set. Ask the rest in one batch: numbered, each with its options and your recommendation, each answerable in a sentence. Don't cut until they are answered. Then write the answers on the spec as one comment that starts `[Agent comment]` and quotes the user's words, so they outlive this conversation.
 
@@ -42,7 +42,7 @@ A slice is one outcome a user or a test can see, proved by one test, that a reve
 A numbered list, one line per slice: title, the outcome, blocked by, door, and what the user settled for it. Ask one thing: is anything missing, wrong, or better merged or split? Publish when the user says go. When re-cutting one issue on ship-wave's behalf, publish without asking.
 
 ## 5. Publish
-One issue per slice, in dependency order so blockers can be linked by their real ids, each a sub-issue of the spec, with the tracker's native blocking links where it has them and the `ready-for-agent` label. A slice whose question the user has left open is published without that label, so no agent starts it, and the report names it. Don't close or edit the spec, apart from the answers comment. When re-cutting, close the issue you replaced with a link to the new ones.
+One issue per slice, in dependency order so blockers can be linked by their real ids, each a sub-issue of the spec, with the tracker's native blocking links where it has them and the `ready-for-agent` label. A slice whose question the user has left open is published without that label, so no agent starts it, and the report names it. Don't close or edit the spec, apart from the answers comment. When re-cutting, close the issue you replaced with a link to the new ones. Then read each published issue back and check that its title matches its outcome.
 
 Every issue has all of these sections. `ship-wave` doesn't start an issue that lacks one.
 

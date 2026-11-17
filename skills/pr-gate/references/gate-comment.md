@@ -3,7 +3,7 @@
 Plain words, for a reader who is not a programmer. Short: a small change gets a few lines, never a page. One line per field; leave a field out when it has nothing to say.
 
 ```markdown
-<!-- pr-gate verdict=<clear | needs-you> sha=<full head sha> -->
+<!-- pr-gate verdict=<clear | needs-you | back> sha=<full head sha> -->
 **<Ready to merge: nothing to read | Needs you: <n> to answer | Waiting: <CI | a fix>>** (repo setting `<mvp | live>`, head <short sha>)
 
 **Why:** <one sentence: what the change touches, and which step 5 case applies or that none does>

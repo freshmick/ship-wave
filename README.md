@@ -110,7 +110,7 @@ A PR needs you only in five cases:
 
 1. **A decision the issue doesn't settle**: product behaviour a user would notice, including who can see or do what.
 2. **Consent to something a revert can't undo**: spending money, publishing, changing an external system, and, once real people use the product, a migration that drops data, a changed public API, or a message or charge to real people.
-3. **A change to the controls**: `CLAUDE.md`, `.claude/**`, CI workflows and the config of the checks; or a check weakened (a skipped test, a lowered threshold) that the issue didn't ask for.
+3. **A change to the controls**: `CLAUDE.md`, `.claude/**`, CI workflows and the config of the checks. A skipped test or a suppression the issue didn't ask for goes back to the implementer instead.
 4. **The gate is stuck**: three review rounds without settling a finding, or a check it can't run.
 5. **A concern it couldn't settle**, when it can say what goes wrong, for whom, and why no check shows it.
 
