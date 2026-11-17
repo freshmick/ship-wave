@@ -22,14 +22,14 @@ test('C2: zero reads 0s and a negative number throws', () => {
   assert.throws(() => formatDuration(-1), RangeError);
 });
 
-test('C3: since keeps that date and later, and the total counts what is shown', () => {
+test('C3, with the answer given while slicing: since keeps that date and later, and the total counts what is shown', () => {
   const lines = buildReport(trips, { since: '2026-11-03' });
   assert.equal(lines.length, 3);
   assert.match(lines[0], /^2026-11-03 /);
   assert.match(lines.at(-1), /^total  2 trips /);
 });
 
-test('the answer given while slicing: no trips since the date gives only the total line', () => {
+test('no trips since the date gives only the total line, as an empty report does today', () => {
   const lines = buildReport(trips, { since: '2026-12-01' });
   assert.equal(lines.length, 1);
   assert.match(lines[0], /^total  0 trips /);

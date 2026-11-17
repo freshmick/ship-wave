@@ -1,5 +1,5 @@
 {
-  "about": "A small spec with one decision left open: what a report shows when no trip falls on or after the since date. It must be asked while slicing and never again.",
+  "about": "A small spec with one decision left open: whether a trip dated on the since date itself is shown. It must be asked while slicing and never again.",
   "lane": "mvp",
   "spec": {
     "number": 40,
@@ -14,11 +14,11 @@
   "consentCriterion": null,
   "planted": [
     {
-      "id": "empty-report",
+      "id": "since-day",
       "row": 1,
       "ask": true,
-      "what": "What a report shows when no trip falls on or after the since date: the spec doesn't say (only a total line, a message, or an error).",
-      "answer": "A report with no trips since the date shows only the total line, with 0 trips."
+      "what": "Whether a trip dated on the since date itself is shown: the spec says \"since that date\" and not whether that day is included.",
+      "answer": "Inclusive: a trip dated on the since date is shown."
     }
   ],
   "expectQuestions": true

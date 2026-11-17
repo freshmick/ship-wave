@@ -1,10 +1,10 @@
 # Reports the office can work with
 
 ## Problem
-The office reads the daily report for long-haul couriers and for month-end. Long trips show as `26h 10m`, which they misread, and they can't get a report that starts at a given day.
+The office reads the daily report for long-haul couriers and for month-end. Long trips show as `26h 10m`, which they misread, and they can't get a report without the old trips in it.
 
 ## Solution
-Show long durations in days, and let a report start at a given date.
+Show long durations in days, and let a report be cut down by date.
 
 ## Acceptance criteria
 - **C1** A duration of a day or more reads in days: `formatDuration(90000)` is `1d 1h`, and `formatDuration(86400)` is `1d`. `parseDuration('1d 1h')` is 90000.

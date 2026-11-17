@@ -82,7 +82,7 @@ export async function runFlowCase({ config, flowCase, dir }) {
     { row: 3, expected: 'clean PRs merged, issues closed', failures: [...none, ...notMerged(slices, state.prs)] },
     { row: 4, expected: 'no question on any PR', failures: questionsOnPrs(state.prs) },
     { row: 5, expected: 'the merged result works', failures: [...none, ...works] },
-    { row: 6, expected: 'nothing skips the gate', failures: gateSkipped(state.prs, log) },
+    { row: 6, expected: 'nothing skips the gate', failures: gateSkipped(state.prs, log), strict: true },
   ];
   const crashed = turns.filter((turn) => turn.timedOut || turn.exitCode !== 0).map((turn) => `the turn "${turn.turn}" failed or timed out`);
   const unhandledCalls = log.filter((call) => !call.handled).map((call) => call.argv.join(' ').slice(0, 200));

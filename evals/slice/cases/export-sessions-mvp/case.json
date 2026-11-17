@@ -33,10 +33,9 @@
     },
     {
       "id": "email",
-      "row": 9,
-      "ask": true,
-      "what": "The email through Postmark can't be tested before production (no sandbox), and it is a message to real people: accept that, or change the plan.",
-      "answer": "The Postmark email: I accept that delivery can't be tried before production."
+      "row": 26,
+      "ask": false,
+      "what": "Whether to accept that the Postmark email can't be tested before production. It stays off until a Postmark token is set, so it needs no answer."
     },
     {
       "id": "column-drop",

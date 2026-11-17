@@ -36,6 +36,7 @@ export async function runGateCase({ config, sourceRepo, gateCase, dir, numbers }
     name: gateCase.name,
     expected: gateCase.expected.outcome,
     outcome: outcomeOf(seen),
+    strict: gateCase.expected.outcome === 'needs-you',
     passed: failures.length === 0,
     failures,
     unhandledCalls: seen.unhandledCalls,

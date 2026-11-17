@@ -9,9 +9,9 @@ const asksAboutSpec = (judged) =>
 
 export function sliceRowResults({ sliceCase, seen, faults, spec, viewer }) {
   const rows = [];
-  const add = (row, expected, failures) => rows.push({ row, expected, failures });
+  const add = (row, expected, failures, strict = false) => rows.push({ row, expected, failures, strict });
 
-  // Rows 1, 3, 4, 5, 6, 9: each planted item is asked, or not, as its row says.
+  // Rows 1, 3, 4, 5, 6, 9, 26: each planted item is asked, or not, as its row says.
   const byRow = Map.groupBy(sliceCase.planted, (item) => item.row);
   for (const [row, items] of byRow) {
     const failures = items
@@ -21,7 +21,7 @@ export function sliceRowResults({ sliceCase, seen, faults, spec, viewer }) {
       const technical = (seen.asked.others ?? []).filter((other) => other.kind === 'technical');
       failures.push(...technical.map((other) => `asked a technical question: ${other.question}`));
     }
-    add(row, items[0].ask ? 'asked' : 'not asked', failures);
+    add(row, items[0].ask ? 'asked' : 'not asked', failures, items.some((item) => item.ask));
   }
 
   if (sliceCase.expectQuestions) {

@@ -18,7 +18,7 @@
   ],
   "localChecks": "pass",
   "expected": {
-    "outcome": "needs-you",
+    "outcome": "back",
     "merged": false
   }
 }

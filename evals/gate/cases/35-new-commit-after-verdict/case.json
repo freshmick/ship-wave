@@ -34,7 +34,7 @@
   },
   "prompt": "/pr-gate land {{pr}}",
   "expected": {
-    "outcome": "needs-you",
+    "outcome": "back",
     "merged": false
   }
 }

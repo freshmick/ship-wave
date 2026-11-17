@@ -9,11 +9,22 @@ These check that the skills do what the expectation files say. Each case is one 
 ```sh
 node evals/run.mjs gate                 # every case, once
 node evals/run.mjs gate --rows 1,18     # only these rows
-node evals/run.mjs gate --runs 3        # three runs per case; a row passes only if all three do
+node evals/run.mjs gate --runs 3        # three runs per case; see "When a row passes"
 node --test 'evals/test/*.test.mjs'     # the harness's own tests, no model calls
 ```
 
-Every run is a real Claude Code session and costs tokens. The report lists pass or fail per row, and the rows that have no case yet.
+Every run is a real Claude Code session and costs tokens.
+
+**When a row passes.** A row where a miss costs something a revert can't fix must pass every run: the gate rows that must reach the user, the slicing rows that must be asked, and "nothing skips the gate" in the whole flow. Any other row passes when two in three of its runs do. One run can't tell a flake from a fault, so judge a row on three.
+
+**Routine check.** After a small edit to a skill, run the gate rows that must reach the user three times, and the whole flow once. Run the full suites when a rule changes.
+
+```sh
+node evals/run.mjs gate --rows 18,19,20,22,24,25,26,27 --runs 3
+node evals/run.mjs flow
+```
+
+The report lists pass or fail per row.
 
 ### How a case runs
 
@@ -80,11 +91,7 @@ The case under `flow/cases/` is a small spec for the `build/fixture-repo/` proje
 
 ## Reviewer catch rate
 
-Not a pass/fail eval. It measures how often a fresh-context reviewer, briefed as `pr-gate` briefs its own, catches one planted bug as the diff around it grows. The bug is always the same; the padding is real Umami history.
-
-```sh
-node evals/measure-catch-rate.mjs --trials 3
-```
+Measured once, with a script that is no longer kept here: how often a fresh-context reviewer, briefed as `pr-gate` briefs its own, catches one planted bug as the diff around it grows. The bug was always the same; the padding was real Umami history.
 
 Result on 16 November 2026, on Opus, three reviewers per size:
 

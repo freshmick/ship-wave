@@ -136,6 +136,7 @@ function merge(args, ctx) {
     const pr = requirePr(args, state);
     const admin = args.has('admin');
     if (pr.state === 'MERGED') return void ctx.out(`! Pull request ${state.repo}#${pr.number} was already merged\n`);
+    if (pr.isDraft) throw new GhFailure('GraphQL: Pull Request is still a draft (mergePullRequest)');
     if (state.requiresApproval && !admin) {
       throw new GhFailure(`Pull request ${state.repo}#${pr.number} is not mergeable: the base branch policy prohibits the merge.\nTo have the pull request merged after all the requirements have been met, add the \`--auto\` flag.\nTo use administrator privileges to immediately merge the pull request, add the \`--admin\` flag.`);
     }

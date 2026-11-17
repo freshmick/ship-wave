@@ -76,6 +76,17 @@ test('a squash merge puts one commit on main and closes the issue', async () => 
   assert.equal(git(env.FAKE_GH_ORIGIN, ['show', 'main:a.txt']), 'one\ntwo');
 });
 
+test('a draft is not merged until it is marked ready', async () => {
+  const draft = { ...state().prs[0], isDraft: true };
+  writeState({ prs: [draft] });
+  const refused = await gh('pr', 'merge', '7', '--squash');
+  assert.equal(refused.exit, 1);
+  assert.match(refused.stderr, /still a draft/);
+  assert.equal(state().prs[0].state, 'OPEN');
+  await gh('pr', 'ready', '7');
+  assert.equal((await gh('pr', 'merge', '7', '--squash')).exit, 0);
+});
+
 test('merge is refused when the repo needs an approval, and says so', async () => {
   writeState({ requiresApproval: true });
   const { exit, stderr } = await gh('pr', 'merge', '7', '--squash');

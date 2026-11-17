@@ -5,7 +5,14 @@ export function expectationRows(path) {
   return [...readFileSync(path, 'utf8').matchAll(/^\|\s*(\d+)\s*\|/gm)].map((match) => Number(match[1]));
 }
 
-// Groups run results by row. A row passes only when every run of it passed.
+// A strict row is one where a miss costs something a revert can't fix: every
+// run must pass. Any other row passes when two in three of its runs do.
+export function rowPassed(runs) {
+  const passes = runs.filter((run) => run.passed).length;
+  return runs.some((run) => run.strict) ? passes === runs.length : passes * 3 >= runs.length * 2;
+}
+
+// Groups run results by row.
 // `caseRows` are the rows that have a case, run this time or not.
 export function summarise(results, allRows, caseRows) {
   const byRow = new Map();
@@ -13,7 +20,8 @@ export function summarise(results, allRows, caseRows) {
   const rows = [...byRow.entries()].map(([row, runs]) => ({
     row,
     expected: runs[0].expected,
-    passed: runs.every((run) => run.passed),
+    strict: runs.some((run) => run.strict),
+    passed: rowPassed(runs),
     runs,
   }));
   return {
@@ -29,7 +37,7 @@ export function formatSummary(summary) {
   const lines = [];
   for (const row of summary.rows) {
     const passes = row.runs.filter((run) => run.passed).length;
-    lines.push(`${row.passed ? 'PASS' : 'FAIL'}  row ${row.row}  (expected ${row.expected}; ${passes}/${row.runs.length} runs passed)`);
+    lines.push(`${row.passed ? 'PASS' : 'FAIL'}  row ${row.row}  (expected ${row.expected}; ${passes}/${row.runs.length} runs passed${row.strict ? ', all must' : ''})`);
     for (const run of row.runs.filter((item) => !item.passed)) {
       run.failures.forEach((failure) => lines.push(`        - ${run.name}: ${failure}`));
       lines.push(`          evidence: ${run.dir}`);

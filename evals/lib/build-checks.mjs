@@ -15,7 +15,7 @@ export function prFaults(pr, issueNumber) {
     faults.push(`the body does not start with a closing keyword for #${issueNumber}: "${firstLine.slice(0, 60)}"`);
   }
   if (!/door:?\**:?\s*\**\s*`?(two-way|one-way)/i.test(pr.body)) faults.push('the body has no Door line saying two-way or one-way');
-  if (/needs human/i.test(pr.body)) faults.push('the body has a "Needs human" section');
+  if (/needs (human|you)/i.test(pr.body)) faults.push('the body has a "Needs you" or "Needs human" section');
   return faults;
 }
 
