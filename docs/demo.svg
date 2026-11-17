@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" width="760" height="400" role="img" aria-label="Terminal demo: ship-slice asks one question, ship-wave builds five PRs, the gate merges four and brings one question back">
+<style>
+  text { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 14px; }
+  .plain { fill: #c9d1d9; }
+  .dim { fill: #8b949e; }
+  .cmd { fill: #f0f6fc; font-weight: 600; }
+  .prompt { fill: #bc8cff; font-weight: 600; }
+  .blue { fill: #58a6ff; }
+  .green { fill: #3fb950; }
+  .yellow { fill: #d29922; }
+  .head { fill: #f0f6fc; font-weight: 600; }
+  .title { fill: #8b949e; font-size: 12px; }
+</style>
+<rect x="0.5" y="0.5" width="759" height="399" rx="10" fill="#0d1117" stroke="#30363d"/>
+<path d="M0.5 36.5 H759.5" stroke="#30363d"/>
+<circle cx="22" cy="18" r="6" fill="#ff5f57"/>
+<circle cx="42" cy="18" r="6" fill="#febc2e"/>
+<circle cx="62" cy="18" r="6" fill="#28c840"/>
+<text x="380" y="22" text-anchor="middle" class="title">claude — example session, a made-up shop app</text>
+<text x="28.0" y="74" class="prompt" opacity="0">&gt;<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.0133;0.3167;1" dur="30s" repeatCount="indefinite"/></text>
+<clipPath id="type0"><rect x="45.2" y="58" height="22" width="0"><animate attributeName="width" values="0;0;146;146" keyTimes="0;0.0233;0.0473;1" dur="30s" repeatCount="indefinite"/></rect></clipPath>
+<text x="45.2" y="74" class="cmd" clip-path="url(#type0)" opacity="0">/ship-slice #200<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.0133;0.3167;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="45.2" y="98" class="dim" opacity="0">Read the spec and the code. One thing only you can settle:<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.0667;0.3167;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="45.2" y="146" class="plain" opacity="0">Who can see another customer's orders?<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.0933;0.3167;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="62.4" y="170" class="plain" opacity="0">a) admins only, or b) admins and support<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.1067;0.3167;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="62.4" y="194" class="dim" opacity="0">I recommend a.<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.1200;0.3167;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="28.0" y="242" class="prompt" opacity="0">&gt;<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.1667;0.3167;1" dur="30s" repeatCount="indefinite"/></text>
+<clipPath id="type1"><rect x="45.2" y="226" height="22" width="0"><animate attributeName="width" values="0;0;17;17" keyTimes="0;0.1767;0.1782;1" dur="30s" repeatCount="indefinite"/></rect></clipPath>
+<text x="45.2" y="242" class="cmd" clip-path="url(#type1)" opacity="0">a<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.1667;0.3167;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="45.2" y="266" class="dim" opacity="0">Cut into 5 slices, one issue each:<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.2067;0.3167;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="45.2" y="290" class="blue" opacity="0">#208  #209  #210  #211  #212<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.2267;0.3167;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="45.2" y="338" class="dim" opacity="0">Every issue: one outcome, one proving test, one revert.<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.2467;0.3167;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="28.0" y="74" class="prompt" opacity="0">&gt;<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.3267;0.6667;1" dur="30s" repeatCount="indefinite"/></text>
+<clipPath id="type2"><rect x="45.2" y="58" height="22" width="0"><animate attributeName="width" values="0;0;309;309" keyTimes="0;0.3367;0.3892;1" dur="30s" repeatCount="indefinite"/></rect></clipPath>
+<text x="45.2" y="74" class="cmd" clip-path="url(#type2)" opacity="0">/ship-wave #208 #209 #210 #211 #212<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.3267;0.6667;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="45.2" y="98" class="dim" opacity="0">5 issues, 5 agents, 5 draft PRs<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.4033;0.6667;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="45.2" y="146" class="blue" opacity="0">#208<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.4233;0.6667;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="96.8" y="146" class="plain" opacity="0">Order list paging<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.4233;0.6667;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="303.2" y="146" class="dim" opacity="0">building...<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.4233;0.4733;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="303.2" y="146" class="yellow" opacity="0">gate reviewing...<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.4733;0.5200;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="303.2" y="146" class="plain" opacity="0">ready to merge<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.5200;0.6667;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="449.4" y="146" class="green" opacity="0">merged ✓<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.5367;0.6667;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="45.2" y="170" class="blue" opacity="0">#209<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.4233;0.6667;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="96.8" y="170" class="plain" opacity="0">Order detail page<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.4233;0.6667;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="303.2" y="170" class="dim" opacity="0">building...<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.4233;0.5000;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="303.2" y="170" class="yellow" opacity="0">gate reviewing...<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.5000;0.5533;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="303.2" y="170" class="plain" opacity="0">ready to merge<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.5533;0.6667;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="449.4" y="170" class="green" opacity="0">merged ✓<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.5700;0.6667;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="45.2" y="194" class="blue" opacity="0">#210<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.4233;0.6667;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="96.8" y="194" class="plain" opacity="0">Empty order list text<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.4233;0.6667;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="303.2" y="194" class="dim" opacity="0">building...<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.4233;0.4533;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="303.2" y="194" class="yellow" opacity="0">gate reviewing...<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.4533;0.4933;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="303.2" y="194" class="plain" opacity="0">ready to merge<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.4933;0.6667;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="449.4" y="194" class="green" opacity="0">merged ✓<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.5100;0.6667;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="45.2" y="218" class="blue" opacity="0">#211<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.4233;0.6667;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="96.8" y="218" class="plain" opacity="0">Order list tests<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.4233;0.6667;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="303.2" y="218" class="dim" opacity="0">building...<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.4233;0.4867;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="303.2" y="218" class="yellow" opacity="0">gate reviewing...<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.4867;0.5300;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="303.2" y="218" class="plain" opacity="0">ready to merge<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.5300;0.6667;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="449.4" y="218" class="green" opacity="0">merged ✓<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.5467;0.6667;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="45.2" y="242" class="blue" opacity="0">#212<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.4233;0.6667;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="96.8" y="242" class="plain" opacity="0">Refunds<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.4233;0.6667;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="303.2" y="242" class="dim" opacity="0">building...<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.4233;0.5133;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="303.2" y="242" class="yellow" opacity="0">gate reviewing...<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.5133;0.5733;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="303.2" y="242" class="yellow" opacity="0">needs you: 1 question<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.5733;0.6667;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="45.2" y="290" class="plain" opacity="0">Wave done. 4 merged. 1 question for you.<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.5967;0.6667;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="28.0" y="74" class="head" opacity="0">Digest<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.6767;0.9833;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="28.0" y="122" class="yellow" opacity="0">Needs you<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.6967;0.9833;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="45.2" y="146" class="blue" opacity="0">#212<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.7100;0.9833;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="96.8" y="146" class="plain" opacity="0">A refund larger than the charge: reject it or cap it?<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.7100;0.9833;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="96.8" y="170" class="dim" opacity="0">The PR rejects it. I recommend rejecting.<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.7233;0.9833;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="28.0" y="218" class="green" opacity="0">Merged by the gate<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.7433;0.9833;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="45.2" y="242" class="blue" opacity="0">#208  #209  #210  #211<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.7433;0.9833;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="28.0" y="290" class="prompt" opacity="0">&gt;<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.8067;0.9833;1" dur="30s" repeatCount="indefinite"/></text>
+<clipPath id="type3"><rect x="45.2" y="274" height="22" width="0"><animate attributeName="width" values="0;0;60;60" keyTimes="0;0.8167;0.8257;1" dur="30s" repeatCount="indefinite"/></rect></clipPath>
+<text x="45.2" y="290" class="cmd" clip-path="url(#type3)" opacity="0">reject<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.8067;0.9833;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="45.2" y="314" class="blue" opacity="0">#212<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.8457;0.9833;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="96.8" y="314" class="plain" opacity="0">answer applied, changed lines re-reviewed,<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.8457;0.9833;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="466.6" y="314" class="green" opacity="0">merged ✓<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.8657;0.9833;1" dur="30s" repeatCount="indefinite"/></text>
+<text x="45.2" y="362" class="head" opacity="0">Diffs you read: 0<animate attributeName="opacity" calcMode="discrete" values="0;1;0;0" keyTimes="0;0.8923;0.9833;1" dur="30s" repeatCount="indefinite"/></text>
+</svg>
