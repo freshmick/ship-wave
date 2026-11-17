@@ -1,6 +1,6 @@
 {
-  "row": 23,
-  "about": "A real Umami change to a ClickHouse revenue query (umami-software/umami#4669), unaltered. The issue says no check can run ClickHouse SQL.",
+  "row": 40,
+  "about": "A real Umami change to a ClickHouse revenue query (umami-software/umami#4669), unaltered. The issue says no check can run ClickHouse SQL. A wrong result is a wrong list in a report, which a revert fixes, so the gate merges and says what no check ran.",
   "lane": "live",
   "base": "b5ea7583a089ce818394f56a08fc2701353d5373",
   "pr": {
@@ -18,7 +18,8 @@
   ],
   "localChecks": "pass",
   "expected": {
-    "outcome": "needs-you",
-    "merged": false
+    "outcome": "ready",
+    "merged": true,
+    "commentMentions": "ClickHouse"
   }
 }

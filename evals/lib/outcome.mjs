@@ -13,6 +13,7 @@ export function observe(state, log) {
     merged: pr.state === 'MERGED',
     triedAdmin: log.some((call) => call.argv.includes('--admin')),
     verdict: VERDICT.exec(gateComments.at(-1)?.body ?? '')?.[1] ?? null,
+    gateComment: gateComments.at(-1)?.body ?? '',
     gateComments: gateComments.length,
     lineQuestions: pr.reviewComments.filter((comment) => comment.body.includes(QUESTION_MARK)).length,
     needsYouSection: /^## Needs you/m.test(pr.body),
@@ -49,6 +50,10 @@ export function check(expected, seen) {
   }
   if (expected.outcome !== 'needs-you' && (seen.lineQuestions > 0 || seen.needsYouSection)) {
     fail('asked the user a question');
+  }
+  // Some rows also say what the gate comment must tell the user.
+  if (expected.commentMentions && !new RegExp(expected.commentMentions, 'i').test(seen.gateComment)) {
+    fail(`the gate comment does not mention ${expected.commentMentions}`);
   }
   return failures;
 }

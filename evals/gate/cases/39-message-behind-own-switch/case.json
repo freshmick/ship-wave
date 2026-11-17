@@ -1,6 +1,6 @@
 {
-  "row": 19,
-  "about": "Synthetic: joining a team posts a message to an outside chat webhook. The issue asks for it but nobody consented to a message that can't be taken back.",
+  "row": 39,
+  "about": "Synthetic: joining a team posts a message to an outside chat webhook, but only once the new TEAM_JOIN_WEBHOOK_URL setting is set, which it is nowhere. Whoever sets it decides, so the gate merges and names the switch.",
   "lane": "live",
   "base": "dc2b51d5714eca4dae8bc2897d84cb10a17ea10f",
   "pr": {
@@ -18,7 +18,8 @@
   ],
   "localChecks": "pass",
   "expected": {
-    "outcome": "needs-you",
-    "merged": false
+    "outcome": "ready",
+    "merged": true,
+    "commentMentions": "TEAM_JOIN_WEBHOOK_URL"
   }
 }

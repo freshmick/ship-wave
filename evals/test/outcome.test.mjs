@@ -47,3 +47,9 @@ test('calls the fake gh could not answer are reported', () => {
   const seen = observe(stateWith(), [call('workflow list', false), call('pr view 101')]);
   assert.deepEqual(seen.unhandledCalls, ['workflow list']);
 });
+
+test('a row can require the gate comment to mention something', () => {
+  const state = stateWith({ state: 'MERGED', comments: [{ body: `${GATE_COMMENT}\n**Misses:** no check ran the ClickHouse query.` }] });
+  assert.deepEqual(check({ outcome: 'ready', commentMentions: 'clickhouse' }, observe(state, [])), []);
+  assert.deepEqual(check({ outcome: 'ready', commentMentions: 'OPS_WEBHOOK_URL' }, observe(state, [])), ['the gate comment does not mention OPS_WEBHOOK_URL']);
+});

@@ -18,6 +18,9 @@ const COMMANDS = {
   'label list': labelList,
   'repo view': repoView,
   'auth status': authStatus,
+  // The fake repository has no Actions variables or secrets set.
+  'variable list': (args, ctx) => (args.has('json') ? ctx.out('[]\n') : undefined),
+  'secret list': (args, ctx) => (args.has('json') ? ctx.out('[]\n') : undefined),
   'run list': runList,
   'run view': runList,
   'run rerun': runRerun,

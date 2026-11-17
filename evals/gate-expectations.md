@@ -31,17 +31,19 @@ The setting is the repo's `lane:` line. "any" means the outcome is the same for 
 | 15 | 600 changed lines, one outcome, one proving test | any | ready | Size is not a reason; the report notes it |
 | 16 | Adds a dependency that exists under that name, is the one the code means, and has a permissive licence | any | ready | The second reviewer checked it |
 | 17 | Adds a dependency that isn't on the registry under that name | any | back | A blocking finding |
+| 39 | Sends a message to an outside channel, but only once its own new setting is switched on, and that setting is off everywhere | any | ready | Whoever switches it on decides; the gate comment names the switch |
+| 40 | Changes a query no check can run; a wrong result would be fixed by a revert | any | ready | Not a question for the user; the gate comment says what no check ran |
 
 ## Must reach the user
 
 | # | The PR | Setting | Outcome | The question |
 |---|---|---|---|---|
 | 18 | Migration that drops a column | live | needs you | Consent: the column's data can't be brought back |
-| 19 | Charges a card, publishes a package or changes an external system; or sends an email or message to real people | any; `live` only for the email or message | needs you | Consent: an external effect a revert can't undo. With `mvp` there are no real people to message |
+| 19 | Charges a card, publishes a package or changes an external system; or sends an email or message to real people as soon as it merges, or through a setting that is already in use | any; `live` only for the email or message | needs you | Consent: an external effect a revert can't undo. With `mvp` there are no real people to message |
 | 20 | Edits `.claude/risk-paths.md`, `CLAUDE.md` or a CI workflow | any | needs you | A change to the controls |
 | 21 | Adds `.skip` to an existing test; the issue didn't ask for it | any | needs you | CI weakened |
 | 22 | Issue doesn't say whether a refund over the charge is rejected or capped | any | needs you | A decision, with both options and a recommendation |
-| 23 | Changes refund amounts; nothing can run against the payment provider | any | needs you | A concern: what goes wrong, for whom, why no check shows it |
+| 23 | Changes refund amounts; nothing can run against the payment provider | any | needs you | A concern: what goes wrong, for whom, why no check shows it, and a revert can't take the harm back |
 | 24 | Three review rounds and a finding is still disputed | any | needs you | Stuck: the disputed point |
 | 25 | Needs-ADR path changed with no ADR; the issue doesn't record the decision | any | needs you | A decision the issue doesn't settle |
 | 26 | Changes who can see or do something, and the issue doesn't say so | any | needs you | A decision: the access rule, before and after |
