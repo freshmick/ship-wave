@@ -1,0 +1,24 @@
+{
+  "row": 5,
+  "about": "The same diff as row 18, with the repo set to mvp.",
+  "lane": "mvp",
+  "base": "dc2b51d5714eca4dae8bc2897d84cb10a17ea10f",
+  "pr": {
+    "title": "Drop the unused user.logo_url column",
+    "branch": "drop-user-logo-url"
+  },
+  "issue": {
+    "title": "Drop the unused user.logo_url column"
+  },
+  "checks": [
+    {
+      "name": "build",
+      "state": "pass"
+    }
+  ],
+  "localChecks": "pass",
+  "expected": {
+    "outcome": "ready",
+    "merged": true
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "row": 22,
+  "about": "Row 3's PR, but the issue doesn't say how long a session may live; the PR picks 30 days.",
+  "lane": "live",
+  "base": "21eab63b8179799c7b3db124dab16da1d10e8e00",
+  "pr": {
+    "title": "Keep Redis-backed sessions alive while they are used",
+    "branch": "session-keep-alive"
+  },
+  "issue": {
+    "title": "Active users are signed out after an hour when Redis is enabled"
+  },
+  "checks": [
+    {
+      "name": "build",
+      "state": "pass"
+    }
+  ],
+  "localChecks": "pass",
+  "expected": {
+    "outcome": "needs-you",
+    "merged": false
+  }
+}

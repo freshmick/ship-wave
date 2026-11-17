@@ -1,0 +1,1 @@
+The issue names "a session rejected because the password changed", without limiting it to old sessions. A test that passes whether or not the behaviour holds does not prove the criterion. The finding stands.

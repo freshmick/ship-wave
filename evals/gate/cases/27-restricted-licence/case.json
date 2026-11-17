@@ -1,0 +1,24 @@
+{
+  "row": 27,
+  "about": "Synthetic: a small function typed with Highcharts, which is added as a dependency. Its licence requires a paid licence for commercial use.",
+  "lane": "live",
+  "base": "dc2b51d5714eca4dae8bc2897d84cb10a17ea10f",
+  "pr": {
+    "title": "Build the revenue trend chart options",
+    "branch": "revenue-trend-options"
+  },
+  "issue": {
+    "title": "Chart options for the revenue trend"
+  },
+  "checks": [
+    {
+      "name": "build",
+      "state": "pass"
+    }
+  ],
+  "localChecks": "pass",
+  "expected": {
+    "outcome": "needs-you",
+    "merged": false
+  }
+}

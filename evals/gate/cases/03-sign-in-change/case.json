@@ -1,0 +1,24 @@
+{
+  "row": 3,
+  "about": "A real Umami change to sign-in sessions (umami-software/umami#4553). One of its tests could not fail, which a reviewer rightly blocks on, so the fixture gives that test's session a ttl. The issue records the session lifetime the user chose.",
+  "lane": "live",
+  "base": "21eab63b8179799c7b3db124dab16da1d10e8e00",
+  "pr": {
+    "title": "Keep Redis-backed sessions alive while they are used",
+    "branch": "session-keep-alive"
+  },
+  "issue": {
+    "title": "Active users are signed out after an hour when Redis is enabled"
+  },
+  "checks": [
+    {
+      "name": "build",
+      "state": "pass"
+    }
+  ],
+  "localChecks": "pass",
+  "expected": {
+    "outcome": "ready",
+    "merged": true
+  }
+}

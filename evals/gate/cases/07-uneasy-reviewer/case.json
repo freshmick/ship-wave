@@ -1,0 +1,34 @@
+{
+  "row": 7,
+  "about": "Row 3's PR with an open thread from another reviewer who is uneasy and names no failing input.",
+  "lane": "live",
+  "base": "21eab63b8179799c7b3db124dab16da1d10e8e00",
+  "pr": {
+    "title": "Keep Redis-backed sessions alive while they are used",
+    "branch": "session-keep-alive"
+  },
+  "issue": {
+    "title": "Active users are signed out after an hour when Redis is enabled"
+  },
+  "checks": [
+    {
+      "name": "build",
+      "state": "pass"
+    }
+  ],
+  "localChecks": "pass",
+  "seed": {
+    "reviewComments": [
+      {
+        "author": "dana-reviewer",
+        "path": "src/lib/auth.ts",
+        "line": 118,
+        "bodyFile": "thread.md"
+      }
+    ]
+  },
+  "expected": {
+    "outcome": "ready",
+    "merged": true
+  }
+}

@@ -1,0 +1,165 @@
+diff --git a/src/app/api/teams/[teamId]/route.test.ts b/src/app/api/teams/[teamId]/route.test.ts
+new file mode 100644
+index 000000000..5b1d70246
+--- /dev/null
++++ b/src/app/api/teams/[teamId]/route.test.ts
+@@ -0,0 +1,45 @@
++import { beforeEach, expect, test, vi } from 'vitest';
++import { parseRequest } from '@/lib/request';
++import { canUpdateTeam } from '@/permissions';
++import { getTeam } from '@/queries/prisma';
++import { GET } from './route';
++
++vi.mock('@/lib/request', () => ({ parseRequest: vi.fn() }));
++vi.mock('@/permissions', () => ({
++  canDeleteTeam: vi.fn(),
++  canUpdateTeam: vi.fn(),
++  canViewTeam: vi.fn().mockResolvedValue(true),
++}));
++vi.mock('@/queries/prisma', () => ({
++  deleteTeam: vi.fn(),
++  getTeam: vi.fn(),
++  updateTeam: vi.fn(),
++}));
++
++const getAsMember = () =>
++  GET(new Request('http://localhost/api/teams/team-1'), {
++    params: Promise.resolve({ teamId: 'team-1' }),
++  }).then(r => r.json());
++
++beforeEach(() => {
++  vi.mocked(parseRequest).mockResolvedValue({ auth: { user: { id: 'user-1' } } } as any);
++  vi.mocked(getTeam).mockResolvedValue({ id: 'team-1', name: 'Team', accessCode: 'secret' } as any);
++});
++
++// The access code lets anyone join as a full member, so a view-only member reading it could
++// leave and rejoin with write access to every team website.
++test('members who cannot edit the team do not receive the access code', async () => {
++  vi.mocked(canUpdateTeam).mockResolvedValue(false);
++
++  const team = await getAsMember();
++
++  expect(team).toEqual({ id: 'team-1', name: 'Team' });
++});
++
++test('owners and managers still receive the access code for the team settings form', async () => {
++  vi.mocked(canUpdateTeam).mockResolvedValue(true);
++
++  const team = await getAsMember();
++
++  expect(team.accessCode).toBe('secret');
++});
+diff --git a/src/app/api/teams/[teamId]/route.ts b/src/app/api/teams/[teamId]/route.ts
+index c334b2af0..8274f736e 100644
+--- a/src/app/api/teams/[teamId]/route.ts
++++ b/src/app/api/teams/[teamId]/route.ts
+@@ -23,6 +23,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ team
+     return notFound({ message: 'Team not found.' });
+   }
+ 
++  // The access code lets anyone join the team as a member, so only roles that can edit the
++  // team receive it.
++  if (!(await canUpdateTeam(auth, teamId))) {
++    const { accessCode: _accessCode, ...rest } = team;
++
++    return json(rest);
++  }
++
+   return json(team);
+ }
+ 
+diff --git a/src/queries/prisma/team.test.ts b/src/queries/prisma/team.test.ts
+new file mode 100644
+index 000000000..84e602e4a
+--- /dev/null
++++ b/src/queries/prisma/team.test.ts
+@@ -0,0 +1,45 @@
++import { expect, test, vi } from 'vitest';
++import { getUserTeams } from './team';
++
++const { pagedQueryMock } = vi.hoisted(() => ({ pagedQueryMock: vi.fn() }));
++
++vi.mock('@/lib/prisma', () => ({
++  default: { getSearchParameters: () => ({}), pagedQuery: pagedQueryMock },
++}));
++vi.mock('@/lib/redis', () => ({ default: { enabled: false } }));
++vi.mock('./website', () => ({ deleteWebsite: vi.fn() }));
++
++const team = (id: string, role: string) => ({
++  id,
++  name: id,
++  accessCode: `code-${id}`,
++  members: [
++    { userId: 'user-1', role },
++    { userId: 'someone-else', role: 'team-owner' },
++  ],
++});
++
++// The access code lets anyone join a team as a full member. A view-only member who reads it
++// could leave and rejoin with more access, so only roles that can edit the team receive it.
++test('getUserTeams only returns the access code to team owners and managers', async () => {
++  pagedQueryMock.mockResolvedValue({
++    data: [
++      team('owned', 'team-owner'),
++      team('managed', 'team-manager'),
++      team('member', 'team-member'),
++      team('viewer', 'team-view-only'),
++    ],
++    count: 4,
++  });
++
++  const { data } = await getUserTeams('user-1');
++  const codes = Object.fromEntries(data.map((t: any) => [t.id, t.accessCode]));
++
++  expect(codes).toEqual({
++    owned: 'code-owned',
++    managed: 'code-managed',
++    member: undefined,
++    viewer: undefined,
++  });
++  expect(data.find((t: any) => t.id === 'viewer')).not.toHaveProperty('accessCode');
++});
+diff --git a/src/queries/prisma/team.ts b/src/queries/prisma/team.ts
+index 661a96517..f822718de 100644
+--- a/src/queries/prisma/team.ts
++++ b/src/queries/prisma/team.ts
+@@ -1,5 +1,5 @@
+ import { Prisma, type Team, type TeamUser } from '@/generated/prisma/client';
+-import { ROLES } from '@/lib/constants';
++import { PERMISSIONS, ROLE_PERMISSIONS, ROLES } from '@/lib/constants';
+ import { uuid } from '@/lib/crypto';
+ import prisma from '@/lib/prisma';
+ import redis from '@/lib/redis';
+@@ -53,7 +53,7 @@ export async function getTeams(
+ }
+ 
+ export async function getUserTeams(userId: string, filters: QueryFilters = {}) {
+-  return getTeams(
++  const teams = await getTeams(
+     {
+       where: {
+         deletedAt: null,
+@@ -88,6 +88,23 @@ export async function getUserTeams(userId: string, filters: QueryFilters = {}) {
+     },
+     filters,
+   );
++
++  // The access code lets anyone join the team as a member, so only roles that can edit the
++  // team (owners and managers) receive it.
++  return {
++    ...teams,
++    data: teams.data.map((team): Omit<Team, 'accessCode'> & { accessCode?: Team['accessCode'] } => {
++      const role = (team as any).members?.find(member => member.userId === userId)?.role;
++
++      if (ROLE_PERMISSIONS[role]?.includes(PERMISSIONS.teamUpdate)) {
++        return team;
++      }
++
++      const { accessCode: _accessCode, ...rest } = team;
++
++      return rest;
++    }),
++  };
+ }
+ 
+ export async function getAllUserTeams(userId: string) {

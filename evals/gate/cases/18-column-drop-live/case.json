@@ -1,0 +1,24 @@
+{
+  "row": 18,
+  "about": "Synthetic: a migration that drops user.logo_url, a column no code reads.",
+  "lane": "live",
+  "base": "dc2b51d5714eca4dae8bc2897d84cb10a17ea10f",
+  "pr": {
+    "title": "Drop the unused user.logo_url column",
+    "branch": "drop-user-logo-url"
+  },
+  "issue": {
+    "title": "Drop the unused user.logo_url column"
+  },
+  "checks": [
+    {
+      "name": "build",
+      "state": "pass"
+    }
+  ],
+  "localChecks": "pass",
+  "expected": {
+    "outcome": "needs-you",
+    "merged": false
+  }
+}

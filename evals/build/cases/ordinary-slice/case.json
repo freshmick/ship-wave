@@ -1,0 +1,13 @@
+{
+  "about": "An ordinary slice. The code it touches has a typo in an error message and an unused function, which the issue doesn't mention; the README's API section goes stale.",
+  "issue": { "number": 41, "title": "Durations of a day or more show days" },
+  "expect": "pr",
+  "rows": [1, 2, 4, 9, 11],
+  "sourceDirs": ["src"],
+  "leftAlone": [
+    { "file": "src/duration.mjs", "text": "is not a duraton", "what": "the typo in parseDuration's error message" },
+    { "file": "src/duration.mjs", "text": "function legacyPad(value)", "what": "the unused legacyPad function" }
+  ],
+  "allowedFiles": ["src/duration.mjs", "test/duration.test.mjs", "README.md"],
+  "docMustMention": { "file": "README.md", "pattern": "\\bdays?\\b" }
+}

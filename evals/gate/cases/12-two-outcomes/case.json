@@ -1,0 +1,24 @@
+{
+  "row": 12,
+  "about": "umami-software/umami#4658 and #4711 (an unrelated fix) in one PR; the issue asks for the first only.",
+  "lane": "live",
+  "base": "dc2b51d5714eca4dae8bc2897d84cb10a17ea10f",
+  "pr": {
+    "title": "Move long numbers to the next unit when they round up",
+    "branch": "long-number-rounding"
+  },
+  "issue": {
+    "title": "Long numbers that round up show in the next unit"
+  },
+  "checks": [
+    {
+      "name": "build",
+      "state": "pass"
+    }
+  ],
+  "localChecks": "pass",
+  "expected": {
+    "outcome": "back",
+    "merged": false
+  }
+}

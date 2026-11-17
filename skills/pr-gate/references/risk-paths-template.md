@@ -1,15 +1,15 @@
 # Risk paths template
 
-A repo may keep its own list at `.claude/risk-paths.md`, written by hand or with the user by the `risk-paths` skill. It sets the repo's lane setting and the paths that decide each PR's lane and review depth. When a repo has none, the gate uses this template with `lane: live`: its generic globs work in any repo and the example globs match nothing.
+A repo may keep its own list at `.claude/risk-paths.md`, written by hand or with the user by the `risk-paths` skill. It sets the repo setting and the paths that decide each PR's review depth. When a repo has none, the gate uses this template with `lane: live`: its generic globs work in any repo. The example globs match nothing, so there the gate goes by what the code does: sign-in and permissions, where user data is stored, and what keeps one user's data from another are sensitive wherever they live.
 
 ```markdown
 # Risk paths (read by the pr-gate skill)
 
 lane: live
 
-Set the line above to mvp or live. With mvp (no real users) the agent merges every PR except those touching a sensitive path or marked `Door: one-way`. With live (real users, or someone else's repo) the agent merges docs, tests and regenerated files only. No line means live.
+Set the line above to mvp or live. With mvp (no real users) a revert undoes a change to stored data or an API, so the gate doesn't ask for consent to one. With live (real users, or someone else's repo) a migration that drops or rewrites data, a changed public API and a message or charge to real people are one-way doors: the gate asks the user first. No line means live.
 
-One glob per bullet, in backticks, gitignore style (`**` crosses directories). A note may follow after ` - `. A file matching a sensitive glob is sensitive, even if it also matches a docs-and-tests glob. A PR is docs-and-tests only when every changed file matches a docs-and-tests glob or is regenerated from an unchanged source, and it changes no behaviour. The gate may move a PR to the person's lane, never to the agent lane.
+One glob per bullet, in backticks, gitignore style (`**` crosses directories). A note may follow after ` - `. A file matching a sensitive glob is sensitive, even if it also matches a docs-and-tests glob. A sensitive path gets a second reviewer; it does not by itself send the PR to the user. A PR is docs-and-tests only when every changed file matches a docs-and-tests glob or is regenerated from an unchanged source, and it changes no behaviour.
 
 ## sensitive
 - `src/auth/**` - example: sign-in, tokens, sessions, permissions; replace with this repo's paths
@@ -57,5 +57,3 @@ One glob per bullet, in backticks, gitignore style (`**` crosses directories). A
 - `**/*.test.*`
 - `**/*.spec.*`
 ```
-
-Generic fallback when a repo has no list: auth, storage, isolation, CI, container/deploy, dependency manifests and lockfiles, and agent rule files are sensitive. Docs-only and tests-only changes are docs and tests. Everything else is ordinary, and in a `live` repo it still goes to the person.

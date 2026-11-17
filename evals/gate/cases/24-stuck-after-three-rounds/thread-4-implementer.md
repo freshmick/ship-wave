@@ -1,0 +1,1 @@
+That is a possible future edit, not a bug in this PR. Sessions stored before this change have no `ttl` and are a real case (criterion 2); this test covers a rejected one of those. A second test with a `ttl` is a test the issue does not list, and I was told to write the tests the issue names and no more.

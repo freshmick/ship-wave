@@ -1,0 +1,105 @@
+diff --git a/src/queries/sql/revenue/getRevenueSessions.ts b/src/queries/sql/revenue/getRevenueSessions.ts
+index 8cda99635..98091e5d2 100644
+--- a/src/queries/sql/revenue/getRevenueSessions.ts
++++ b/src/queries/sql/revenue/getRevenueSessions.ts
+@@ -3,6 +3,7 @@ import { EVENT_TYPE } from '@/lib/constants';
+ import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
+ import prisma from '@/lib/prisma';
+ import type { PageResult, QueryFilters, WebsiteSession } from '@/lib/types';
++import { QUALIFIED_FILTER_COLUMNS } from '@/queries/sql/sessions/getWebsiteSessions';
+ 
+ const FUNCTION_NAME = 'getRevenueSessions';
+ 
+@@ -91,18 +92,27 @@ async function relationalQuery(websiteId: string, currency: string, filters: Que
+ async function clickhouseQuery(websiteId: string, currency: string, filters: QueryFilters) {
+   const { pagedRawQuery, parseFilters, getDateStringSQL } = clickhouse;
+   const { search } = filters;
+-  const { filterQuery, dateQuery, cohortQuery, queryParams } = parseFilters({
+-    ...filters,
+-    websiteId,
+-    currency,
+-  });
++  const { filterQuery, dateQuery, cohortQuery, queryParams } = parseFilters(
++    {
++      ...filters,
++      websiteId,
++      currency,
++    },
++    {
++      columns: QUALIFIED_FILTER_COLUMNS,
++    },
++  );
+ 
+   const searchQuery = search
+-    ? `and ((positionCaseInsensitive(browser, {search:String}) > 0)
+-           or (positionCaseInsensitive(city, {search:String}) > 0)
+-           or (positionCaseInsensitive(os, {search:String}) > 0)
+-           or (positionCaseInsensitive(device, {search:String}) > 0))`
++    ? `and ((positionCaseInsensitive(website_event.browser, {search:String}) > 0)
++           or (positionCaseInsensitive(website_event.city, {search:String}) > 0)
++           or (positionCaseInsensitive(website_event.os, {search:String}) > 0)
++           or (positionCaseInsensitive(website_event.device, {search:String}) > 0))`
+     : '';
++  const normalizedFilterQuery = filterQuery.replace(
++    /referrer_domain != hostname/g,
++    'website_event.referrer_domain != website_event.hostname',
++  );
+ 
+   return pagedRawQuery(
+     `
+@@ -129,7 +139,7 @@ async function clickhouseQuery(websiteId: string, currency: string, filters: Que
+     where website_id = {websiteId:UUID}
+       and event_type != ${EVENT_TYPE.performance}
+     ${dateQuery}
+-    ${filterQuery}
++    ${normalizedFilterQuery}
+     ${searchQuery}
+       and session_id in (
+         select distinct session_id
+diff --git a/src/queries/sql/sessions/getWebsiteSessions.ts b/src/queries/sql/sessions/getWebsiteSessions.ts
+index 541b69be5..db6f6b638 100644
+--- a/src/queries/sql/sessions/getWebsiteSessions.ts
++++ b/src/queries/sql/sessions/getWebsiteSessions.ts
+@@ -5,7 +5,7 @@ import prisma from '@/lib/prisma';
+ import type { PageResult, QueryFilters, WebsiteSession } from '@/lib/types';
+ 
+ const FUNCTION_NAME = 'getWebsiteSessions';
+-const QUALIFIED_FILTER_COLUMNS = Object.fromEntries(
++export const QUALIFIED_FILTER_COLUMNS = Object.fromEntries(
+   Object.entries(FILTER_COLUMNS).map(([key, value]) => [key, `website_event.${value}`]),
+ );
+ 
+diff --git a/tests/api/revenue.spec.ts b/tests/api/revenue.spec.ts
+index dfcd82b1d..417b94377 100644
+--- a/tests/api/revenue.spec.ts
++++ b/tests/api/revenue.spec.ts
+@@ -149,6 +149,13 @@ test.describe('Revenue', () => {
+     const searched = await admin.get(`${base}/revenue/sessions`, {
+       params: { ...params, search: 'zzz-no-such-session' },
+     });
++    const browser = response.body.data[0]?.browser;
++    const byBrowser = await admin.get(`${base}/revenue/sessions`, {
++      params: { ...params, browser },
++    });
++    const byReferrer = await admin.get(`${base}/revenue/sessions`, {
++      params: { ...params, referrer: 'zzz-no-such-referrer' },
++    });
+     const shared = await (await share()).get(`${base}/revenue/sessions`, { params });
+     const denied = await viewer.get(`${base}/revenue/sessions`, { params });
+     const missingCurrency = await admin.get(`${base}/revenue/sessions`, {
+@@ -184,6 +191,15 @@ test.describe('Revenue', () => {
+     expect(searched.status).toBe(200);
+     expect(searched.body.data).toHaveLength(0);
+ 
++    // Filter columns share names with the per-session aggregates on ClickHouse.
++    expect(byBrowser.status).toBe(200);
++    expect(byBrowser.body.data.length).toBeGreaterThan(0);
++    for (const row of byBrowser.body.data) {
++      expect(row.browser).toBe(browser);
++    }
++    expect(byReferrer.status).toBe(200);
++    expect(byReferrer.body.data).toHaveLength(0);
++
+     expect(shared.status).toBe(200);
+     expect(denied.status).toBe(401);
+     expect(missingCurrency.status).toBe(400);

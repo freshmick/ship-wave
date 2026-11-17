@@ -1,0 +1,175 @@
+diff --git a/src/lib/auth.test.ts b/src/lib/auth.test.ts
+index 7501c32c5..24cb860d7 100644
+--- a/src/lib/auth.test.ts
++++ b/src/lib/auth.test.ts
+@@ -1,4 +1,5 @@
+ import { beforeEach, describe, expect, test, vi } from 'vitest';
++import { AUTH_SESSION_TTL } from '@/lib/constants';
+ import { hash } from '@/lib/crypto';
+ import { parseSecureToken } from '@/lib/jwt';
+ import redis from '@/lib/redis';
+@@ -26,6 +27,7 @@ vi.mock('@/lib/redis', () => ({
+     enabled: false,
+     client: {
+       get: vi.fn(),
++      expire: vi.fn().mockResolvedValue(true),
+     },
+   },
+ }));
+@@ -38,6 +40,7 @@ const redisMock = redis as unknown as {
+   enabled: boolean;
+   client: {
+     get: ReturnType<typeof vi.fn>;
++    expire: ReturnType<typeof vi.fn>;
+   };
+ };
+ 
+@@ -67,6 +70,8 @@ beforeEach(() => {
+   updateApiKeyLastUsedMock.mockClear();
+   redisMock.enabled = false;
+   redisMock.client.get.mockReset();
++  redisMock.client.expire.mockReset();
++  redisMock.client.expire.mockResolvedValue(true);
+ });
+ 
+ describe('checkAuth api keys', () => {
+@@ -282,4 +287,77 @@ describe('checkAuth password fingerprint', () => {
+ 
+     expect(result).toBeNull();
+   });
++
++  test('refreshes the session TTL so an active user is not signed out', async () => {
++    redisMock.enabled = true;
++    parseSecureTokenMock.mockReturnValue({ authKey: 'auth:session-key' } as any);
++    redisMock.client.get.mockResolvedValue({
++      userId: 'user-1',
++      pwd: hash(PASSWORD_HASH),
++      ttl: AUTH_SESSION_TTL,
++    });
++    mockUser();
++
++    await checkAuth(authedRequest());
++
++    expect(redisMock.client.expire).toHaveBeenCalledWith('auth:session-key', AUTH_SESSION_TTL);
++  });
++
++  test('leaves a session stored without a window at its original expiry', async () => {
++    redisMock.enabled = true;
++    parseSecureTokenMock.mockReturnValue({ authKey: 'auth:session-key' } as any);
++    redisMock.client.get.mockResolvedValue({ userId: 'user-1', pwd: hash(PASSWORD_HASH) });
++    mockUser();
++
++    const result = await checkAuth(authedRequest());
++
++    expect(result?.user?.id).toBe('user-1');
++    expect(redisMock.client.expire).not.toHaveBeenCalled();
++  });
++
++  test('refreshes using the window the session was created with', async () => {
++    redisMock.enabled = true;
++    parseSecureTokenMock.mockReturnValue({ authKey: 'auth:session-key' } as any);
++    redisMock.client.get.mockResolvedValue({
++      userId: 'user-1',
++      pwd: hash(PASSWORD_HASH),
++      ttl: 86400,
++    });
++    mockUser();
++
++    await checkAuth(authedRequest());
++
++    expect(redisMock.client.expire).toHaveBeenCalledWith('auth:session-key', 86400);
++  });
++
++  test('does not refresh the TTL of a session rejected by a password change', async () => {
++    redisMock.enabled = true;
++    parseSecureTokenMock.mockReturnValue({ authKey: 'auth:session-key' } as any);
++    redisMock.client.get.mockResolvedValue({
++      userId: 'user-1',
++      pwd: hash('old-password-hash'),
++      ttl: AUTH_SESSION_TTL,
++    });
++    mockUser();
++
++    await checkAuth(authedRequest());
++
++    expect(redisMock.client.expire).not.toHaveBeenCalled();
++  });
++
++  test('still authorizes when refreshing the TTL fails', async () => {
++    redisMock.enabled = true;
++    parseSecureTokenMock.mockReturnValue({ authKey: 'auth:session-key' } as any);
++    redisMock.client.get.mockResolvedValue({
++      userId: 'user-1',
++      pwd: hash(PASSWORD_HASH),
++      ttl: AUTH_SESSION_TTL,
++    });
++    redisMock.client.expire.mockRejectedValue(new Error('redis down'));
++    mockUser();
++
++    const result = await checkAuth(authedRequest());
++
++    expect(result?.user?.id).toBe('user-1');
++  });
+ });
+diff --git a/src/lib/auth.ts b/src/lib/auth.ts
+index 203ebd9a5..daeaa2867 100644
+--- a/src/lib/auth.ts
++++ b/src/lib/auth.ts
+@@ -7,6 +7,7 @@ import {
+   isApiKeyEnabled,
+ } from '@/lib/api-key';
+ import {
++  AUTH_SESSION_TTL,
+   PARTIAL_AUTH_TOKEN_TYPE,
+   ROLE_PERMISSIONS,
+   ROLES,
+@@ -108,6 +109,14 @@ export async function checkAuth(request: Request) {
+       if (user && key.pwd && hash(user.password) !== key.pwd) {
+         user = null;
+       }
++
++      // Keep an in-use session alive rather than expiring it a fixed time after
++      // login, reusing the window it was created with. Sessions stored before
++      // this was recorded are left alone: their intended lifetime is unknown,
++      // and defaulting would extend the shorter ones past it.
++      if (user && key.ttl) {
++        await redis.client.expire(authKey, key.ttl).catch(e => log(e));
++      }
+     }
+   }
+ 
+@@ -146,15 +155,14 @@ export async function checkAuth(request: Request) {
+   };
+ }
+ 
+-export async function saveAuth(data: any, expire = 0) {
++export async function saveAuth(data: any, expire = AUTH_SESSION_TTL) {
+   const authKey = `auth:${createAuthKey()}`;
+ 
+   if (redis.enabled) {
+-    await redis.client.set(authKey, data);
+-
+-    if (expire) {
+-      await redis.client.expire(authKey, expire);
+-    }
++    // The TTL must be passed to set(): the client falls back to its own short
++    // DEFAULT_TTL when called without one, which would expire the session.
++    // It is stored alongside the session so refreshes can reuse the same window.
++    await redis.client.set(authKey, { ...data, ttl: expire }, expire);
+   }
+ 
+   return createSecureToken({ authKey }, secret());
+diff --git a/src/lib/constants.ts b/src/lib/constants.ts
+index b4a65a892..b005f6e91 100644
+--- a/src/lib/constants.ts
++++ b/src/lib/constants.ts
+@@ -13,6 +13,9 @@ export const SHARE_CONTEXT_HEADER = 'x-umami-share-context';
+ export const SHARE_TOKEN_TYPE = 'share';
+ export const CACHE_TOKEN_TYPE = 'cache';
+ export const PARTIAL_AUTH_TOKEN_TYPE = 'partial-auth';
++// Lifetime of a Redis-backed auth session, refreshed on every authenticated
++// request so an active user is never signed out.
++export const AUTH_SESSION_TTL = 60 * 60 * 24 * 30;
+ export const HOMEPAGE_URL = 'https://umami.is';
+ export const DOCS_URL = 'https://umami.is/docs';
+ export const REPO_URL = 'https://github.com/umami-software/umami';

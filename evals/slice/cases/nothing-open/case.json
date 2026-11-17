@@ -1,0 +1,12 @@
+{
+  "about": "A spec with nothing open: two independent display fixes, fully specified.",
+  "lane": "live",
+  "base": "dc2b51d5714eca4dae8bc2897d84cb10a17ea10f",
+  "spec": { "number": 90, "title": "Numbers and currencies read correctly" },
+  "criteria": ["C1", "C2"],
+  "consentCriterion": null,
+  "planted": [
+    { "id": "technical", "row": 5, "ask": false, "what": "A technical choice: how the thresholds are written in code." }
+  ],
+  "expectQuestions": false
+}

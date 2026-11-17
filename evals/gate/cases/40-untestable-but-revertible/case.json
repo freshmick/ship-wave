@@ -1,0 +1,25 @@
+{
+  "row": 40,
+  "about": "A real Umami change to a ClickHouse revenue query (umami-software/umami#4669), unaltered. The issue says no check can run ClickHouse SQL. A wrong result is a wrong list in a report, which a revert fixes, so the gate merges and says what no check ran.",
+  "lane": "live",
+  "base": "b5ea7583a089ce818394f56a08fc2701353d5373",
+  "pr": {
+    "title": "Qualify the revenue session filters and search on ClickHouse",
+    "branch": "clickhouse-revenue-filters"
+  },
+  "issue": {
+    "title": "Revenue sessions ignore filters on ClickHouse"
+  },
+  "checks": [
+    {
+      "name": "build",
+      "state": "pass"
+    }
+  ],
+  "localChecks": "pass",
+  "expected": {
+    "outcome": "ready",
+    "merged": true,
+    "commentMentions": "ClickHouse"
+  }
+}

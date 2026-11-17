@@ -1,0 +1,25 @@
+{
+  "about": "A small spec with one decision left open: whether a trip dated on the since date itself is shown. It must be asked while slicing and never again.",
+  "lane": "mvp",
+  "spec": {
+    "number": 40,
+    "title": "Reports the office can work with"
+  },
+  "criteria": [
+    "C1",
+    "C2",
+    "C3",
+    "C4"
+  ],
+  "consentCriterion": null,
+  "planted": [
+    {
+      "id": "since-day",
+      "row": 1,
+      "ask": true,
+      "what": "Whether a trip dated on the since date itself is shown: the spec says \"since that date\" and not whether that day is included.",
+      "answer": "Inclusive: a trip dated on the since date is shown."
+    }
+  ],
+  "expectQuestions": true
+}
