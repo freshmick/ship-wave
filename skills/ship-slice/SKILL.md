@@ -20,8 +20,8 @@ Input: `$ARGUMENTS` (a spec, or one issue to re-cut). The slicing rules build on
 ## 2. Find what only the user can settle
 Do this before cutting anything. Go through the spec against pr-gate's step 5 and list:
 - **Decisions.** Every place the spec is silent or contradicts itself on something a user would notice: empty and error states, limits, who can see or do what, what happens to existing data, the words on the screen.
-- **Consents.** Every one-way door under the repo's setting, every change to the controls, every new dependency whose licence restricts use.
-- **What can't be tested.** An external system with no sandbox, a result nobody can check before real use.
+- **Consents.** Every one-way door under the repo's setting, every change to the controls, every new dependency whose licence restricts use. Something that stays off until its own new setting is switched on is not a one-way door: whoever switches it on decides, so say in the issue what switches it on. It is one when it runs as soon as it merges or rides on a setting already in use.
+- **What can't be tested.** An external system with no sandbox, a result nobody can check before real use, when a wrong result would do harm a revert can't take back (money moved, data lost or exposed, a message sent). When a revert would fix it, don't ask: say under the issue's proving test what no check can run.
 
 Settle yourself what the code, the spec or an ADR already answers, and every technical choice. One exception: who can see or do a new thing is always asked, with the rule similar code follows as your recommendation, because an access rule is the user's to set. Ask the rest in one batch: numbered, each with its options and your recommendation, each answerable in a sentence. Don't cut until they are answered. Then write the answers on the spec as one comment that starts `[Agent comment]` and quotes the user's words, so they outlive this conversation.
 
